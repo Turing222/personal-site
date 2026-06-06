@@ -1,0 +1,101 @@
+---
+title: Alembic 数据库迁移最小工作流
+description: 从安装、初始化到 revision 和 upgrade 的 Alembic 常用命令速查。
+date: 2026-06-07
+tags: ['Python', 'Alembic', '数据库迁移']
+featured: true
+lang: zh
+translationKey: alembic-minimal-workflow
+---
+
+## 一句话说明
+
+Alembic 是 Python 项目里常用的数据库迁移工具，通常和 SQLAlchemy 一起使用，用来把模型变化同步成可追踪、可回滚的数据库版本。
+
+## 安装
+
+如果项目使用 `uv` 管理依赖，可以直接安装：
+
+```sh
+uv add alembic
+```
+
+## 初始化
+
+在项目根目录执行：
+
+```sh
+alembic init alembic
+```
+
+初始化后会生成类似结构：
+
+```text
+├── alembic.ini
+├── alembic/
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions/
+└── models/
+```
+
+几个关键文件：
+
+- `alembic.ini`：Alembic 的配置入口。
+- `alembic/env.py`：连接项目代码和数据库的核心脚本。
+- `alembic/script.py.mako`：迁移脚本模板。
+- `alembic/versions/`：存放每一次迁移记录。
+- `models/`：项目里的数据库模型。
+
+## 最小日常流程
+
+开发时最常用的是这三个动作。
+
+### 1. 生成迁移记录
+
+修改 `models/` 下的 Python 模型后，生成迁移脚本：
+
+```sh
+alembic revision --autogenerate -m "add two file table"
+```
+
+判断基准：只要模型发生了结构变化，就应该生成一次 revision。
+
+### 2. 同步到数据库
+
+生成 revision 后，把数据库升级到最新版本：
+
+```sh
+alembic upgrade head
+```
+
+判断基准：运行完 revision 后，或者 `git pull` 拉到了别人新增的迁移脚本后，都应该执行 upgrade。
+
+### 3. 查看迁移状态
+
+查看历史迁移：
+
+```sh
+alembic history --verbose
+```
+
+查看当前数据库所在版本：
+
+```sh
+alembic current
+```
+
+## 记忆基准
+
+可以先把 Alembic 的日常使用压缩成这条链路：
+
+```text
+改 models
+→ revision --autogenerate
+→ 检查生成的迁移脚本
+→ upgrade head
+→ current/history 验证状态
+```
+
+真正重要的是不要把 `revision` 当成直接改库。它只是生成迁移记录；真正同步数据库的是 `upgrade head`。
