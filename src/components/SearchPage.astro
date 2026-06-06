@@ -37,7 +37,7 @@ const {
   allLabel,
   items,
 } = Astro.props;
-const indexJson = JSON.stringify(items);
+const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
 ---
 <BaseLayout title={title} description={description}>
   <section class="page-header">
@@ -46,7 +46,7 @@ const indexJson = JSON.stringify(items);
     <p>{intro}</p>
   </section>
 
-  <section class="search-panel" data-search-root>
+  <section class="search-panel" data-search-root data-empty-text={emptyText} data-initial-text={initialText}>
     <div class="search-controls">
       <input type="search" placeholder={placeholder} data-search-input aria-label={heading} />
       <div class="search-filters" aria-label="Search filters">
@@ -58,30 +58,10 @@ const indexJson = JSON.stringify(items);
     <p class="search-count" data-search-count>{initialText}</p>
     <div class="search-results" data-search-results></div>
   </section>
+  <script type="application/json" data-search-index set:html={indexJson}></script>
 
-  <script define:vars={{ indexJson, emptyText, initialText }}>
+  <script>
     import Fuse from 'fuse.js';
-
-    const items = JSON.parse(indexJson);
-    const root = document.querySelector('[data-search-root]');
-    const input = root?.querySelector('[data-search-input]');
-    const resultsNode = root?.querySelector('[data-search-results]');
-    const countNode = root?.querySelector('[data-search-count]');
-    const filterButtons = Array.from(root?.querySelectorAll('[data-filter]') ?? []);
-    let activeFilter = 'all';
-
-    const fuse = new Fuse(items, {
-      keys: [
-        { name: 'title', weight: 3 },
-        { name: 'description', weight: 2 },
-        { name: 'tags', weight: 1.4 },
-        { name: 'type', weight: 0.6 },
-      ],
-      includeScore: true,
-      threshold: 0.38,
-      ignoreLocation: true,
-      minMatchCharLength: 1,
-    });
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, (char) => ({
@@ -93,46 +73,82 @@ const indexJson = JSON.stringify(items);
       }[char]));
     }
 
-    function render(results) {
-      if (!resultsNode || !countNode) return;
-
-      if (results.length === 0) {
-        resultsNode.innerHTML = '';
-        countNode.textContent = input?.value.trim() ? emptyText : initialText;
+    function setupSearch() {
+      const root = document.querySelector('[data-search-root]');
+      const indexNode = document.querySelector('[data-search-index]');
+      if (!root || !indexNode) {
         return;
       }
 
-      countNode.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
-      resultsNode.innerHTML = results.map((item) => `
-        <a class="search-result" href="${item.url}">
-          <span>${escapeHtml(item.type)}</span>
-          <strong>${escapeHtml(item.title)}</strong>
-          <p>${escapeHtml(item.description)}</p>
-          <div class="card-meta">
-            <time>${escapeHtml(item.date)}</time>
-            ${item.tags.slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}
-          </div>
-        </a>
-      `).join('');
-    }
+      const items = JSON.parse(indexNode.textContent || '[]');
+      const input = root.querySelector('[data-search-input]');
+      const resultsNode = root.querySelector('[data-search-results]');
+      const countNode = root.querySelector('[data-search-count]');
+      const filterButtons = Array.from(root.querySelectorAll('[data-filter]'));
+      const emptyText = root.getAttribute('data-empty-text') || 'No matching content found.';
+      const initialText = root.getAttribute('data-initial-text') || 'Type to search.';
+      let activeFilter = 'all';
 
-    function runSearch() {
-      const query = input?.value.trim() ?? '';
-      const baseResults = query
-        ? fuse.search(query).map((result) => result.item)
-        : items;
-      render(baseResults.filter((item) => activeFilter === 'all' || item.type === activeFilter));
-    }
-
-    filterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        activeFilter = button.getAttribute('data-filter') ?? 'all';
-        filterButtons.forEach((item) => item.classList.toggle('primary', item === button));
-        runSearch();
+      const fuse = new Fuse(items, {
+        keys: [
+          { name: 'title', weight: 3 },
+          { name: 'description', weight: 2 },
+          { name: 'tags', weight: 1.4 },
+          { name: 'type', weight: 0.6 },
+        ],
+        includeScore: true,
+        threshold: 0.38,
+        ignoreLocation: true,
+        minMatchCharLength: 1,
       });
-    });
 
-    input?.addEventListener('input', runSearch);
-    render(items);
+      function render(results) {
+        if (!resultsNode || !countNode) return;
+
+        if (results.length === 0) {
+          resultsNode.innerHTML = '';
+          countNode.textContent = input?.value.trim() ? emptyText : initialText;
+          return;
+        }
+
+        countNode.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
+        resultsNode.innerHTML = results.map((item) => `
+          <a class="search-result" href="${item.url}">
+            <span>${escapeHtml(item.type)}</span>
+            <strong>${escapeHtml(item.title)}</strong>
+            <p>${escapeHtml(item.description)}</p>
+            <div class="card-meta">
+              <time>${escapeHtml(item.date)}</time>
+              ${item.tags.slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}
+            </div>
+          </a>
+        `).join('');
+      }
+
+      function runSearch() {
+        const query = input?.value.trim() ?? '';
+        const baseResults = query
+          ? fuse.search(query).map((result) => result.item)
+          : items;
+        render(baseResults.filter((item) => activeFilter === 'all' || item.type === activeFilter));
+      }
+
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          activeFilter = button.getAttribute('data-filter') ?? 'all';
+          filterButtons.forEach((item) => item.classList.toggle('primary', item === button));
+          runSearch();
+        });
+      });
+
+      input?.addEventListener('input', runSearch);
+      render(items);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupSearch);
+    } else {
+      setupSearch();
+    }
   </script>
 </BaseLayout>
