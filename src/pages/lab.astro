@@ -1,38 +1,151 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Lab" description="Interactive demos and frontend experiments.">
+<BaseLayout title="实验室" description="HTTP 流程动效、前端交互实验和外部链接入口。">
   <section class="page-header">
     <p class="eyebrow">Lab</p>
-    <h1>Lab</h1>
-    <p>A place for HTTP, frontend interaction, visualization, and dynamic demos. The first version keeps a small interactive panel.</p>
+    <h1>实验室</h1>
+    <p>放一些可交互的小实验、HTTP 流程动效、前端 demo，以及未来上线服务的入口。</p>
   </section>
-  <section class="lab-panel" data-lab-panel>
-    <div class="signal-orbit" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
+
+  <section class="http-lab" data-http-lab>
+    <div class="lab-copy">
+      <p class="eyebrow">HTTP Flow Demo</p>
+      <h2>一次页面请求如何返回</h2>
+      <p>点击运行后，请求会依次经过 Browser、DNS、TLS、CDN、Origin 和 Response。这个 demo 用来做后续 HTTP、缓存、状态码和性能瀑布图实验的起点。</p>
+      <div class="hero-actions">
+        <button class="button primary" data-run-http>运行流程</button>
+        <button class="button" data-reset-http>重置</button>
+      </div>
+      <dl class="http-readout">
+        <div>
+          <dt>状态码</dt>
+          <dd data-http-status>Idle</dd>
+        </div>
+        <div>
+          <dt>缓存</dt>
+          <dd data-http-cache>-</dd>
+        </div>
+        <div>
+          <dt>耗时</dt>
+          <dd data-http-time>0 ms</dd>
+        </div>
+      </dl>
     </div>
-    <div>
-      <h2>Request Timeline Demo</h2>
-      <p>Simulates a request moving from trigger to queue, response, and render.</p>
-      <button class="button primary" data-run-demo>Run</button>
+
+    <div class="request-stage" data-request-stage aria-label="HTTP request flow">
+      <div class="request-line" aria-hidden="true"></div>
+      <div class="packet" data-packet aria-hidden="true"></div>
+      <ol class="request-steps">
+        <li class="active" data-step="Browser">
+          <span>01</span>
+          <strong>Browser</strong>
+          <small>发起请求</small>
+        </li>
+        <li data-step="DNS">
+          <span>02</span>
+          <strong>DNS</strong>
+          <small>解析域名</small>
+        </li>
+        <li data-step="TLS">
+          <span>03</span>
+          <strong>TLS</strong>
+          <small>建立安全连接</small>
+        </li>
+        <li data-step="CDN">
+          <span>04</span>
+          <strong>CDN</strong>
+          <small>检查缓存</small>
+        </li>
+        <li data-step="Origin">
+          <span>05</span>
+          <strong>Origin</strong>
+          <small>回源处理</small>
+        </li>
+        <li data-step="Response">
+          <span>06</span>
+          <strong>Response</strong>
+          <small>返回页面</small>
+        </li>
+      </ol>
     </div>
-    <ol class="timeline" data-timeline>
-      <li class="active">Trigger</li>
-      <li>Queue</li>
-      <li>Response</li>
-      <li>Render</li>
-    </ol>
   </section>
+
+  <section class="link-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Links</p>
+        <h2>外部入口</h2>
+      </div>
+      <p>这里以后可以放 GitHub、项目仓库、线上 demo 和独立服务。</p>
+    </div>
+    <div class="link-grid">
+      <a class="link-card" href="https://github.com/Turing222" target="_blank" rel="noreferrer">
+        <span>GitHub</span>
+        <strong>Turing222</strong>
+        <small>代码、实验和项目仓库入口</small>
+      </a>
+      <a class="link-card" href="https://github.com/Turing222/personal-site" target="_blank" rel="noreferrer">
+        <span>Repository</span>
+        <strong>personal-site</strong>
+        <small>当前站点源码仓库</small>
+      </a>
+      <a class="link-card" href="https://lab.9710221.xyz" target="_blank" rel="noreferrer">
+        <span>Live Site</span>
+        <strong>lab.9710221.xyz</strong>
+        <small>当前线上站点</small>
+      </a>
+      <div class="link-card muted">
+        <span>Future Service</span>
+        <strong>预留服务入口</strong>
+        <small>以后上线的小工具、API 或 demo 可以放在这里</small>
+      </div>
+    </div>
+  </section>
+
   <script>
-    const button = document.querySelector('[data-run-demo]');
-    const steps = Array.from(document.querySelectorAll('[data-timeline] li'));
-    button?.addEventListener('click', () => {
-      steps.forEach((step) => step.classList.remove('active'));
-      steps.forEach((step, index) => {
-        window.setTimeout(() => step.classList.add('active'), index * 420);
+    const runButton = document.querySelector('[data-run-http]');
+    const resetButton = document.querySelector('[data-reset-http]');
+    const packet = document.querySelector('[data-packet]');
+    const stage = document.querySelector('[data-request-stage]');
+    const steps = Array.from(document.querySelectorAll('[data-step]'));
+    const status = document.querySelector('[data-http-status]');
+    const cache = document.querySelector('[data-http-cache]');
+    const time = document.querySelector('[data-http-time]');
+
+    const states = [
+      { status: 'Pending', cache: '-', time: '12 ms' },
+      { status: 'Resolving', cache: '-', time: '34 ms' },
+      { status: 'Handshake', cache: '-', time: '78 ms' },
+      { status: 'Cache miss', cache: 'MISS', time: '116 ms' },
+      { status: '200 OK', cache: 'MISS', time: '182 ms' },
+      { status: 'Rendered', cache: 'Stored', time: '214 ms' },
+    ];
+
+    function setStep(currentIndex) {
+      steps.forEach((step, stepIndex) => {
+        step.classList.toggle('active', stepIndex <= currentIndex);
+      });
+      const stageWidth = stage?.getBoundingClientRect().width ?? 0;
+      const travel = Math.max(stageWidth - 122, 0);
+      packet?.setAttribute('data-index', String(currentIndex));
+      packet?.setAttribute('style', `--packet-x: ${(travel * currentIndex) / Math.max(steps.length - 1, 1)}px`);
+      status && (status.textContent = states[currentIndex].status);
+      cache && (cache.textContent = states[currentIndex].cache);
+      time && (time.textContent = states[currentIndex].time);
+    }
+
+    resetButton?.addEventListener('click', () => {
+      setStep(0);
+    });
+
+    runButton?.addEventListener('click', () => {
+      setStep(0);
+      steps.forEach((_, index) => {
+        window.setTimeout(() => setStep(index), index * 520);
       });
     });
+
+    setStep(0);
   </script>
 </BaseLayout>
