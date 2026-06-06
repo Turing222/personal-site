@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EntryCard from '../components/EntryCard.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const posts = (await getCollection('posts')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
+const latestPosts = posts.slice(0, 4);
+---
+<BaseLayout>
+  <section class="hero-section">
+    <p class="eyebrow">Personal Project Lab</p>
+    <h1>Project experiments, engineering notes, and technical reviews.</h1>
+    <p>A lightweight first version for publishing project retrospectives, technical writing, and interactive demos. The content model leaves room for a deeper knowledge system later.</p>
+    <div class="hero-actions">
+      <a class="button primary" href="/projects">View Projects</a>
+      <a class="button" href="/posts">Read Posts</a>
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <div class="section-heading">
+      <p class="eyebrow">Featured</p>
+      <h2>Featured Projects</h2>
+    </div>
+    <div class="card-grid">
+      {featuredProjects.map((project) => (
+        <EntryCard
+          title={project.data.title}
+          description={project.data.description}
+          href={`/projects/${project.id}`}
+          date={project.data.date}
+          tags={project.data.tags}
+        />
+      ))}
+    </div>
+  </section>
+
+  <section class="section-grid">
+    <div class="section-heading">
+      <p class="eyebrow">Latest</p>
+      <h2>Latest Posts</h2>
+    </div>
+    <div class="list-grid">
+      {latestPosts.map((post) => (
+        <EntryCard
+          title={post.data.title}
+          description={post.data.description}
+          href={`/posts/${post.id}`}
+          date={post.data.date}
+          tags={post.data.tags}
+        />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

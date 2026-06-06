@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Lab" description="Interactive demos and frontend experiments.">
+  <section class="page-header">
+    <p class="eyebrow">Lab</p>
+    <h1>Lab</h1>
+    <p>A place for HTTP, frontend interaction, visualization, and dynamic demos. The first version keeps a small interactive panel.</p>
+  </section>
+  <section class="lab-panel" data-lab-panel>
+    <div class="signal-orbit" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div>
+      <h2>Request Timeline Demo</h2>
+      <p>Simulates a request moving from trigger to queue, response, and render.</p>
+      <button class="button primary" data-run-demo>Run</button>
+    </div>
+    <ol class="timeline" data-timeline>
+      <li class="active">Trigger</li>
+      <li>Queue</li>
+      <li>Response</li>
+      <li>Render</li>
+    </ol>
+  </section>
+  <script>
+    const button = document.querySelector('[data-run-demo]');
+    const steps = Array.from(document.querySelectorAll('[data-timeline] li'));
+    button?.addEventListener('click', () => {
+      steps.forEach((step) => step.classList.remove('active'));
+      steps.forEach((step, index) => {
+        window.setTimeout(() => step.classList.add('active'), index * 420);
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  tags?: string[];
+  eyebrow?: string;
+}
+
+const { title, description, date, tags = [], eyebrow = 'Note' } = Astro.props;
+const formattedDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(date);
+---
+<BaseLayout title={title} description={description}>
+  <article class="content-shell">
+    <header class="content-hero">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      <div class="meta-row">
+        <time datetime={date.toISOString()}>{formattedDate}</time>
+        {tags.map((tag) => <span>{tag}</span>)}
+      </div>
+    </header>
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

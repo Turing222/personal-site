@@ -1,0 +1,63 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const siteName = 'Project Notes';
+const { title = siteName, description = 'Personal project lab and technical review archive.' } = Astro.props;
+const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">Project Notes</a>
+      <nav aria-label="Primary navigation">
+        <a href="/projects">Projects</a>
+        <a href="/posts">Posts</a>
+        <a href="/lab">Lab</a>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <span>Project Notes</span>
+      <span>Built with Astro, MDX and Cloudflare Pages.</span>
+    </footer>
+    <script>
+      import mermaid from 'mermaid';
+
+      mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+      const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
+      blocks.forEach((block, index) => {
+        const container = document.createElement('div');
+        const lines = Array.from(block.querySelectorAll('.line'));
+        container.className = 'mermaid';
+        container.id = `mermaid-${index}`;
+        container.textContent = lines.length > 0
+          ? lines.map((line) => line.textContent ?? '').join('\n')
+          : block.textContent ?? '';
+        block.replaceWith(container);
+      });
+
+      if (blocks.length > 0) {
+        mermaid.run({ querySelector: '.mermaid' });
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

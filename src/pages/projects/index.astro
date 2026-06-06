@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntryCard from '../../components/EntryCard.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<BaseLayout title="Project Reviews" description="Project experiments, technical choices, and retrospectives.">
+  <section class="page-header">
+    <p class="eyebrow">Projects</p>
+    <h1>Project Reviews</h1>
+    <p>Each review records context, goals, technical approach, tradeoffs, result, and retrospective notes.</p>
+  </section>
+  <section class="list-grid">
+    {projects.map((project) => (
+      <EntryCard title={project.data.title} description={project.data.description} href={`/projects/${project.id}`} date={project.data.date} tags={project.data.tags} />
+    ))}
+  </section>
+</BaseLayout>

@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntryCard from '../../components/EntryCard.astro';
+
+const posts = (await getCollection('posts')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<BaseLayout title="Engineering Notes" description="Articles, technical notes, and engineering records.">
+  <section class="page-header">
+    <p class="eyebrow">Posts</p>
+    <h1>Engineering Notes</h1>
+    <p>Notes for technical decisions, implementation details, research logs, and project summaries.</p>
+  </section>
+  <section class="list-grid">
+    {posts.map((post) => (
+      <EntryCard title={post.data.title} description={post.data.description} href={`/posts/${post.id}`} date={post.data.date} tags={post.data.tags} />
+    ))}
+  </section>
+</BaseLayout>

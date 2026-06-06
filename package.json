@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "latest",
+    "astro": "latest",
+    "mermaid": "^11.15.0",
+    "typescript": "latest"
+  }
+}
