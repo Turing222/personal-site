@@ -1,20 +1,94 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="About" description="About Project Notes.">
+<BaseLayout title="关于我" description="数据库支撑、后端工程、AI/RAG 后端实践与个人项目复盘。">
   <section class="page-header">
     <p class="eyebrow">About</p>
-    <h1>About</h1>
-    <p>This page is reserved for personal positioning, technical interests, project history, and contact details.</p>
+    <h1>关于我</h1>
+    <p>近 3 年数据库支撑与后端相关经验，持续实践 AI/RAG 后端项目，关注从数据、接口、部署到监控的完整工程链路。</p>
   </section>
+
   <section class="two-column">
     <div>
-      <h2>Site Direction</h2>
-      <p>This is a personal project lab and technical review archive, focused on real projects, engineering tradeoffs, and reusable lessons.</p>
+      <h2>当前方向</h2>
+      <p>我把这个站作为个人项目实验室和技术复盘档案，记录后端工程、数据库实践、AI/RAG 项目、部署监控和工具化实验。</p>
     </div>
     <div>
-      <h2>Next Steps</h2>
-      <p>Future versions can add richer indexes, search, tags, automation, and long-term knowledge workflows.</p>
+      <h2>工程经验</h2>
+      <p>熟悉 Python、SQL、PostgreSQL、Redis、FastAPI，具备部署、监控、日志、压测、数据库巡检和运维支持等工程经验。</p>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Stack</p>
+        <h2>技术栈</h2>
+      </div>
+      <p>偏后端、数据库和 AI/RAG 工程落地。</p>
+    </div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <span>Languages</span>
+        <strong>Python / SQL</strong>
+        <p>主要使用 Python 做后端服务、数据处理、脚本工具和 AI/RAG 项目实践。</p>
+      </div>
+      <div class="skill-card">
+        <span>Backend</span>
+        <strong>FastAPI / SQLAlchemy / Pydantic</strong>
+        <p>关注接口设计、数据模型、校验层、异步任务和可维护的服务结构。</p>
+      </div>
+      <div class="skill-card">
+        <span>Data</span>
+        <strong>PostgreSQL / MySQL / Redis</strong>
+        <p>包含数据库巡检、DDL 维护、存储过程编写、缓存和数据问题排查。</p>
+      </div>
+      <div class="skill-card">
+        <span>AI Backend</span>
+        <strong>pgvector / TaskIQ / PydanticAI / Langfuse</strong>
+        <p>持续进行 RAG、向量检索、任务编排、评估观测和 AI 后端工程实践。</p>
+      </div>
+      <div class="skill-card">
+        <span>Ops</span>
+        <strong>Linux / Docker / GitHub Actions / GCP / AWS</strong>
+        <p>覆盖部署、环境配置、CI/CD、日志排查和基础云资源使用。</p>
+      </div>
+      <div class="skill-card">
+        <span>Observability</span>
+        <strong>Prometheus / Grafana / Loki</strong>
+        <p>关注指标、日志、监控面板和上线后的运行状态。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="link-section compact">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Links</p>
+        <h2>入口</h2>
+      </div>
+    </div>
+    <div class="link-grid">
+      <a class="link-card" href="https://github.com/Turing222" target="_blank" rel="noreferrer">
+        <span>GitHub</span>
+        <strong>Turing222</strong>
+        <small>代码仓库和个人项目</small>
+      </a>
+      <a class="link-card" href="https://lab.9710221.xyz" target="_blank" rel="noreferrer">
+        <span>Site</span>
+        <strong>Project Notes</strong>
+        <small>个人项目实验室与技术复盘档案</small>
+      </a>
+      <a class="link-card" href="https://github.com/Turing222/personal-site" target="_blank" rel="noreferrer">
+        <span>Repository</span>
+        <strong>personal-site</strong>
+        <small>当前站点源码</small>
+      </a>
+      <div class="link-card muted">
+        <span>Contact</span>
+        <strong>待补充</strong>
+        <small>邮箱或其他联系方式可以后续放在这里</small>
+      </div>
     </div>
   </section>
 </BaseLayout>
