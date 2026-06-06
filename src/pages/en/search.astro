@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import SearchPage from '../../components/SearchPage.astro';
+import { entryUrl, getEntryLang } from '../../utils/content';
+
+const enProjects = (await getCollection('projects')).filter((entry) => getEntryLang(entry) === 'en');
+const enPosts = (await getCollection('posts')).filter((entry) => getEntryLang(entry) === 'en');
+const formatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' });
+const items = [
+  ...enProjects.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.description,
+    url: entryUrl('projects', entry),
+    tags: entry.data.tags,
+    type: 'Project' as const,
+    date: formatter.format(entry.data.date),
+  })),
+  ...enPosts.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.description,
+    url: entryUrl('posts', entry),
+    tags: entry.data.tags,
+    type: 'Post' as const,
+    date: formatter.format(entry.data.date),
+  })),
+].sort((a, b) => b.date.localeCompare(a.date));
+---
+<SearchPage
+  title="Search"
+  description="Search project reviews and engineering notes."
+  heading="Search"
+  intro="Search project reviews and engineering notes by title, description, and tags."
+  placeholder="Search Astro, Cloudflare, engineering notes..."
+  emptyText="No matching content found."
+  initialText="Type a keyword, or browse all content."
+  projectLabel="Projects"
+  postLabel="Posts"
+  allLabel="All"
+  items={items}
+/>

@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import SearchPage from '../components/SearchPage.astro';
+import { entryUrl, getEntryLang } from '../utils/content';
+
+const zhProjects = (await getCollection('projects')).filter((entry) => getEntryLang(entry) === 'zh');
+const zhPosts = (await getCollection('posts')).filter((entry) => getEntryLang(entry) === 'zh');
+const formatter = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' });
+const items = [
+  ...zhProjects.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.description,
+    url: entryUrl('projects', entry),
+    tags: entry.data.tags,
+    type: 'Project' as const,
+    date: formatter.format(entry.data.date),
+  })),
+  ...zhPosts.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.description,
+    url: entryUrl('posts', entry),
+    tags: entry.data.tags,
+    type: 'Post' as const,
+    date: formatter.format(entry.data.date),
+  })),
+].sort((a, b) => b.date.localeCompare(a.date));
+---
+<SearchPage
+  title="搜索"
+  description="搜索项目复盘和工程笔记。"
+  heading="搜索"
+  intro="按标题、描述和标签搜索项目复盘与工程笔记。"
+  placeholder="搜索 FastAPI、Astro、数据库迁移..."
+  emptyText="没有找到匹配内容。"
+  initialText="输入关键词，或直接浏览全部内容。"
+  projectLabel="Projects"
+  postLabel="Posts"
+  allLabel="全部"
+  items={items}
+/>

@@ -1,0 +1,138 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface SearchItem {
+  title: string;
+  description: string;
+  url: string;
+  tags: string[];
+  type: 'Project' | 'Post';
+  date: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  intro: string;
+  placeholder: string;
+  emptyText: string;
+  initialText: string;
+  projectLabel: string;
+  postLabel: string;
+  allLabel: string;
+  items: SearchItem[];
+}
+
+const {
+  title,
+  description,
+  heading,
+  intro,
+  placeholder,
+  emptyText,
+  initialText,
+  projectLabel,
+  postLabel,
+  allLabel,
+  items,
+} = Astro.props;
+const indexJson = JSON.stringify(items);
+---
+<BaseLayout title={title} description={description}>
+  <section class="page-header">
+    <p class="eyebrow">Search</p>
+    <h1>{heading}</h1>
+    <p>{intro}</p>
+  </section>
+
+  <section class="search-panel" data-search-root>
+    <div class="search-controls">
+      <input type="search" placeholder={placeholder} data-search-input aria-label={heading} />
+      <div class="search-filters" aria-label="Search filters">
+        <button class="button primary" type="button" data-filter="all">{allLabel}</button>
+        <button class="button" type="button" data-filter="Project">{projectLabel}</button>
+        <button class="button" type="button" data-filter="Post">{postLabel}</button>
+      </div>
+    </div>
+    <p class="search-count" data-search-count>{initialText}</p>
+    <div class="search-results" data-search-results></div>
+  </section>
+
+  <script define:vars={{ indexJson, emptyText, initialText }}>
+    import Fuse from 'fuse.js';
+
+    const items = JSON.parse(indexJson);
+    const root = document.querySelector('[data-search-root]');
+    const input = root?.querySelector('[data-search-input]');
+    const resultsNode = root?.querySelector('[data-search-results]');
+    const countNode = root?.querySelector('[data-search-count]');
+    const filterButtons = Array.from(root?.querySelectorAll('[data-filter]') ?? []);
+    let activeFilter = 'all';
+
+    const fuse = new Fuse(items, {
+      keys: [
+        { name: 'title', weight: 3 },
+        { name: 'description', weight: 2 },
+        { name: 'tags', weight: 1.4 },
+        { name: 'type', weight: 0.6 },
+      ],
+      includeScore: true,
+      threshold: 0.38,
+      ignoreLocation: true,
+      minMatchCharLength: 1,
+    });
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      }[char]));
+    }
+
+    function render(results) {
+      if (!resultsNode || !countNode) return;
+
+      if (results.length === 0) {
+        resultsNode.innerHTML = '';
+        countNode.textContent = input?.value.trim() ? emptyText : initialText;
+        return;
+      }
+
+      countNode.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
+      resultsNode.innerHTML = results.map((item) => `
+        <a class="search-result" href="${item.url}">
+          <span>${escapeHtml(item.type)}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.description)}</p>
+          <div class="card-meta">
+            <time>${escapeHtml(item.date)}</time>
+            ${item.tags.slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}
+          </div>
+        </a>
+      `).join('');
+    }
+
+    function runSearch() {
+      const query = input?.value.trim() ?? '';
+      const baseResults = query
+        ? fuse.search(query).map((result) => result.item)
+        : items;
+      render(baseResults.filter((item) => activeFilter === 'all' || item.type === activeFilter));
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        activeFilter = button.getAttribute('data-filter') ?? 'all';
+        filterButtons.forEach((item) => item.classList.toggle('primary', item === button));
+        runSearch();
+      });
+    });
+
+    input?.addEventListener('input', runSearch);
+    render(items);
+  </script>
+</BaseLayout>
