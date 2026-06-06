@@ -1,0 +1,34 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEntryLang, tagToSlug } from '../../utils/content';
+
+const entries = [
+  ...(await getCollection('posts')),
+  ...(await getCollection('projects')),
+].filter((entry) => getEntryLang(entry) === 'zh');
+
+const tagCounts = new Map<string, number>();
+for (const entry of entries) {
+  for (const tag of entry.data.tags) {
+    tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
+}
+
+const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+---
+<BaseLayout title="标签" description="按标签浏览项目复盘和工程笔记。">
+  <section class="page-header">
+    <p class="eyebrow">Tags</p>
+    <h1>标签</h1>
+    <p>按主题浏览项目复盘、工程笔记和方法论内容。</p>
+  </section>
+  <section class="tag-cloud">
+    {tags.map(([tag, count]) => (
+      <a href={`/tags/${tagToSlug(tag)}/`}>
+        <span>{tag}</span>
+        <small>{count}</small>
+      </a>
+    ))}
+  </section>
+</BaseLayout>

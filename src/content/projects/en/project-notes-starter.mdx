@@ -1,0 +1,73 @@
+---
+title: Project Notes Personal Site
+description: A lightweight personal project lab built with Astro, MDX, GitHub, and Cloudflare Pages.
+date: 2026-06-07
+updatedDate: 2026-06-07
+tags: ['Astro', 'MDX', 'Cloudflare Pages', 'CI/CD']
+featured: true
+status: shipped
+stack: ['Astro', 'TypeScript', 'MDX', 'CSS', 'GitHub', 'Cloudflare Pages']
+lang: en
+translationKey: personal-site
+links:
+  - label: Live Site
+    url: https://lab.9710221.xyz
+  - label: GitHub Repository
+    url: https://github.com/Turing222/personal-site
+---
+
+## One-line Summary
+
+A static personal site for project reviews, engineering notes, technical retrospectives, and small interactive demos.
+
+## Background
+
+The goal was to build a maintainable site without self-hosting a server. The site needed to support MDX content, Mermaid diagrams, images, frontend interactions, GitHub-based updates, and deployment to a custom domain.
+
+## Goals
+
+- Ship a lightweight but presentable first version.
+- Keep the content model ready for deeper project reviews and engineering notes.
+- Avoid backend services, login, comments, and databases in the first version.
+- Use GitHub and Cloudflare Pages for automatic deployment.
+
+## Technical Approach
+
+Astro generates the static pages, MDX stores project reviews and notes, and plain CSS handles the visual system and Lab interactions.
+
+```mermaid
+graph TD
+  A[Local Astro Project] --> B[Git Commit]
+  B --> C[GitHub Repository]
+  C --> D[Cloudflare Pages Build]
+  D --> E[Static dist Output]
+  E --> F[Custom Domain lab.9710221.xyz]
+```
+
+## CI/CD Flow
+
+```text
+Edit locally
+→ npm run build
+→ git add / commit
+→ git push to GitHub main
+→ Cloudflare Pages runs npm run build
+→ publish dist
+→ custom domain updates
+```
+
+## Tradeoffs
+
+The first version intentionally keeps the system static. This lowers maintenance cost and keeps the focus on content structure, project retrospectives, and publishing workflow.
+
+## Result
+
+The site now includes home, projects, posts, Lab, About, custom domain deployment, Obsidian note migration samples, and an interactive HTTP flow demo.
+
+## Next Steps
+
+- Expand bilingual content.
+- Add tag index pages.
+- Improve project metadata and links.
+- Add static search.
+- Continue migrating useful Obsidian notes into publishable MDX.

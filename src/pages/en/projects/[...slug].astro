@@ -1,0 +1,42 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import ContentLayout from '../../../layouts/ContentLayout.astro';
+import { getEntryLang, stripLangFromId } from '../../../utils/content';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects
+    .filter((project) => getEntryLang(project) === 'en')
+    .map((project) => ({ params: { slug: stripLangFromId(project.id) }, props: { project } }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+<ContentLayout title={project.data.title} description={project.data.description} date={project.data.date} tags={project.data.tags} eyebrow="Project Review">
+  <div class="project-meta-panel">
+    {project.data.stack.length > 0 && (
+      <section>
+        <h2>Stack</h2>
+        <div class="meta-row">
+          {project.data.stack.map((item) => <span>{item}</span>)}
+        </div>
+      </section>
+    )}
+    {project.data.links.length > 0 && (
+      <section>
+        <h2>Links</h2>
+        <div class="hero-actions">
+          {project.data.links.map((link) => (
+            <a class="button" href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+  <Content />
+</ContentLayout>

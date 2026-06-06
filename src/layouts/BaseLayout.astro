@@ -7,6 +7,10 @@ interface Props {
 const siteName = 'Project Notes';
 const { title = siteName, description = 'Personal project lab and technical review archive.' } = Astro.props;
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
+const isEnglish = Astro.url.pathname.startsWith('/en');
+const navPrefix = isEnglish ? '/en' : '';
+const switchHref = isEnglish ? '/' : '/en/';
+const switchLabel = isEnglish ? '中文' : 'EN';
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -21,10 +25,12 @@ const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
     <header class="site-header">
       <a class="brand" href="/">Project Notes</a>
       <nav aria-label="Primary navigation">
-        <a href="/projects">Projects</a>
-        <a href="/posts">Posts</a>
+        <a href={`${navPrefix}/projects`}>Projects</a>
+        <a href={`${navPrefix}/posts`}>Posts</a>
+        <a href={`${navPrefix}/tags`}>Tags</a>
         <a href="/lab">Lab</a>
-        <a href="/about">About</a>
+        <a href={`${navPrefix}/about`}>About</a>
+        <a href={switchHref}>{switchLabel}</a>
       </nav>
     </header>
     <main>

@@ -1,26 +1,27 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import EntryCard from '../components/EntryCard.astro';
-import { entryUrl, getEntryLang } from '../utils/content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntryCard from '../../components/EntryCard.astro';
+import { entryUrl, getEntryLang } from '../../utils/content';
 
 const projects = (await getCollection('projects'))
-  .filter((project) => getEntryLang(project) === 'zh')
+  .filter((project) => getEntryLang(project) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const posts = (await getCollection('posts'))
-  .filter((post) => getEntryLang(post) === 'zh')
+  .filter((post) => getEntryLang(post) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
 const latestPosts = posts.slice(0, 4);
 ---
-<BaseLayout>
+<BaseLayout title="Project Notes" description="Personal project lab and technical review archive.">
   <section class="hero-section">
     <p class="eyebrow">Personal Project Lab</p>
     <h1>Project experiments, engineering notes, and technical reviews.</h1>
-    <p>A lightweight first version for publishing project retrospectives, technical writing, and interactive demos. The content model leaves room for a deeper knowledge system later.</p>
+    <p>A lightweight personal site for project retrospectives, technical writing, and interactive demos.</p>
     <div class="hero-actions">
-      <a class="button primary" href="/projects">View Projects</a>
-      <a class="button" href="/posts">Read Posts</a>
+      <a class="button primary" href="/en/projects">View Projects</a>
+      <a class="button" href="/en/posts">Read Posts</a>
+      <a class="button" href="/">中文</a>
     </div>
   </section>
 
@@ -31,13 +32,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
     <div class="card-grid">
       {featuredProjects.map((project) => (
-        <EntryCard
-          title={project.data.title}
-          description={project.data.description}
-          href={entryUrl('projects', project)}
-          date={project.data.date}
-          tags={project.data.tags}
-        />
+        <EntryCard title={project.data.title} description={project.data.description} href={entryUrl('projects', project)} date={project.data.date} tags={project.data.tags} />
       ))}
     </div>
   </section>
@@ -49,13 +44,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
     <div class="list-grid">
       {latestPosts.map((post) => (
-        <EntryCard
-          title={post.data.title}
-          description={post.data.description}
-          href={entryUrl('posts', post)}
-          date={post.data.date}
-          tags={post.data.tags}
-        />
+        <EntryCard title={post.data.title} description={post.data.description} href={entryUrl('posts', post)} date={post.data.date} tags={post.data.tags} />
       ))}
     </div>
   </section>

@@ -1,18 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import EntryCard from '../../components/EntryCard.astro';
-import { entryUrl, getEntryLang } from '../../utils/content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import EntryCard from '../../../components/EntryCard.astro';
+import { entryUrl, getEntryLang } from '../../../utils/content';
 
 const projects = (await getCollection('projects'))
-  .filter((project) => getEntryLang(project) === 'zh')
+  .filter((project) => getEntryLang(project) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
-<BaseLayout title="项目复盘" description="项目实验、技术方案与复盘档案。">
+<BaseLayout title="Project Reviews" description="Project experiments, technical choices, and retrospectives.">
   <section class="page-header">
     <p class="eyebrow">Projects</p>
-    <h1>项目复盘</h1>
-    <p>记录每个项目从背景、目标、方案到取舍和最终效果的完整过程。</p>
+    <h1>Project Reviews</h1>
+    <p>Each review records context, goals, technical approach, tradeoffs, results, and retrospective notes.</p>
   </section>
   <section class="list-grid">
     {projects.map((project) => (

@@ -1,12 +1,12 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
-import ContentLayout from '../../layouts/ContentLayout.astro';
-import { getEntryLang, stripLangFromId } from '../../utils/content';
+import ContentLayout from '../../../layouts/ContentLayout.astro';
+import { getEntryLang, stripLangFromId } from '../../../utils/content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
   return posts
-    .filter((post) => getEntryLang(post) === 'zh')
+    .filter((post) => getEntryLang(post) === 'en')
     .map((post) => ({ params: { slug: stripLangFromId(post.id) }, props: { post } }));
 }
 

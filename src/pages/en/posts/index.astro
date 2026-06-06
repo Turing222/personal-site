@@ -1,18 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import EntryCard from '../../components/EntryCard.astro';
-import { entryUrl, getEntryLang } from '../../utils/content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import EntryCard from '../../../components/EntryCard.astro';
+import { entryUrl, getEntryLang } from '../../../utils/content';
 
 const posts = (await getCollection('posts'))
-  .filter((post) => getEntryLang(post) === 'zh')
+  .filter((post) => getEntryLang(post) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
-<BaseLayout title="工程笔记" description="文章、技术笔记与工程记录。">
+<BaseLayout title="Engineering Notes" description="Articles, technical notes, and engineering records.">
   <section class="page-header">
     <p class="eyebrow">Posts</p>
-    <h1>工程笔记</h1>
-    <p>沉淀技术判断、实现细节、调研记录和阶段性总结。</p>
+    <h1>Engineering Notes</h1>
+    <p>Notes for technical decisions, implementation details, research logs, and project summaries.</p>
   </section>
   <section class="list-grid">
     {posts.map((post) => (
