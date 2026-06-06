@@ -13,11 +13,11 @@ const posts = (await getCollection('posts'))
 const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
 const latestPosts = posts.slice(0, 4);
 ---
-<BaseLayout title="Project Notes" description="Personal project lab and technical review archive.">
+<BaseLayout title="Dewflow Lab" description="Personal project lab and technical review archive.">
   <section class="hero-section">
     <p class="eyebrow">Personal Project Lab</p>
     <h1>Project experiments, engineering notes, and technical reviews.</h1>
-    <p>A lightweight personal site for project retrospectives, technical writing, and interactive demos.</p>
+    <p>Dewflow Lab records project ideas, implementation notes, deployment decisions, backend engineering, databases, AI/RAG practice, and frontend experiments.</p>
     <div class="hero-actions">
       <a class="button primary" href="/en/projects">View Projects</a>
       <a class="button" href="/en/posts">Read Posts</a>

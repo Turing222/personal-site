@@ -1,4 +1,4 @@
-# Project Notes
+# Dewflow Lab
 
 Personal project lab and technical review archive built with Astro, MDX, TypeScript, and plain CSS.
 

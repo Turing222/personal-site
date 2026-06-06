@@ -4,8 +4,8 @@ interface Props {
   description?: string;
 }
 
-const siteName = 'Project Notes';
-const { title = siteName, description = 'Personal project lab and technical review archive.' } = Astro.props;
+const siteName = 'Dewflow Lab';
+const { title = siteName, description = '个人项目实验室与技术复盘档案。' } = Astro.props;
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 const isEnglish = Astro.url.pathname.startsWith('/en');
 const navPrefix = isEnglish ? '/en' : '';
@@ -23,7 +23,7 @@ const switchLabel = isEnglish ? '中文' : 'EN';
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/">Project Notes</a>
+      <a class="brand" href="/">Dewflow Lab</a>
       <nav aria-label="Primary navigation">
         <a href={`${navPrefix}/projects`}>Projects</a>
         <a href={`${navPrefix}/posts`}>Posts</a>
@@ -38,7 +38,7 @@ const switchLabel = isEnglish ? '中文' : 'EN';
       <slot />
     </main>
     <footer class="site-footer">
-      <span>Project Notes</span>
+      <span>Dewflow Lab</span>
       <span>Built with Astro, MDX and Cloudflare Pages.</span>
     </footer>
     <script>
