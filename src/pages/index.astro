@@ -13,8 +13,8 @@ const posts = (await getCollection('posts'))
 const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
 const latestPosts = posts.slice(0, 4);
 ---
-<BaseLayout>
-  <section class="hero-section">
+<BaseLayout htmlClass="snap-scroll-page">
+  <section id="home-intro" class="hero-section snap-section" data-section-id>
     <p class="eyebrow">Personal Project Lab</p>
     <h1>个人项目实验室与技术复盘档案</h1>
     <p>Dewflow Lab 用来记录项目从想法、实现、部署到复盘的过程，也沉淀后端工程、数据库、AI/RAG 和前端实验相关笔记。</p>
@@ -25,7 +25,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
   </section>
 
-  <section class="section-grid">
+  <section id="featured-projects" class="section-grid snap-section" data-section-id>
     <div class="section-heading">
       <p class="eyebrow">Featured</p>
       <h2>精选项目</h2>
@@ -43,7 +43,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
   </section>
 
-  <section class="section-grid">
+  <section id="latest-notes" class="section-grid snap-section" data-section-id>
     <div class="section-heading">
       <p class="eyebrow">Latest</p>
       <h2>最新笔记</h2>
@@ -60,4 +60,10 @@ const latestPosts = posts.slice(0, 4);
       ))}
     </div>
   </section>
+
+  <nav class="section-dots" aria-label="首页分区" data-section-nav>
+    <a class="active" href="#home-intro" aria-label="Intro" aria-current="true" data-section-link></a>
+    <a href="#featured-projects" aria-label="Featured projects" data-section-link></a>
+    <a href="#latest-notes" aria-label="Latest notes" data-section-link></a>
+  </nav>
 </BaseLayout>

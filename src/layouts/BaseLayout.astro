@@ -1,11 +1,14 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+
 interface Props {
   title?: string;
   description?: string;
+  htmlClass?: string;
 }
 
 const siteName = 'Dewflow Lab';
-const { title = siteName, description = '个人项目实验室与技术复盘档案。' } = Astro.props;
+const { title = siteName, description = '个人项目实验室与技术复盘档案。', htmlClass = '' } = Astro.props;
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 const isEnglish = Astro.url.pathname.startsWith('/en');
 const navPrefix = isEnglish ? '/en' : '';
@@ -13,13 +16,14 @@ const switchHref = isEnglish ? '/' : '/en/';
 const switchLabel = isEnglish ? '中文' : 'EN';
 ---
 <!doctype html>
-<html lang="zh-CN">
+<html lang={isEnglish ? 'en' : 'zh-CN'} class={htmlClass}>
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{pageTitle}</title>
+    <ClientRouter />
   </head>
   <body>
     <header class="site-header">
@@ -42,25 +46,128 @@ const switchLabel = isEnglish ? '中文' : 'EN';
       <span>Built with Astro, MDX and Cloudflare Pages.</span>
     </footer>
     <script>
+      import gsap from 'gsap';
+      import { ScrollTrigger } from 'gsap/ScrollTrigger';
       import mermaid from 'mermaid';
 
+      gsap.registerPlugin(ScrollTrigger);
       mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
 
-      const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
-      blocks.forEach((block, index) => {
-        const container = document.createElement('div');
-        const lines = Array.from(block.querySelectorAll('.line'));
-        container.className = 'mermaid';
-        container.id = `mermaid-${index}`;
-        container.textContent = lines.length > 0
-          ? lines.map((line) => line.textContent ?? '').join('\n')
-          : block.textContent ?? '';
-        block.replaceWith(container);
-      });
+      let sectionDotResizeHandler;
+      let sectionDotTriggers = [];
 
-      if (blocks.length > 0) {
-        mermaid.run({ querySelector: '.mermaid' });
+      async function renderMermaidBlocks() {
+        const blocks = Array.from(document.querySelectorAll('pre[data-language="mermaid"]'));
+        blocks.forEach((block, index) => {
+          const container = document.createElement('div');
+          const lines = Array.from(block.querySelectorAll('.line'));
+          container.className = 'mermaid';
+          container.id = `mermaid-${index}`;
+          container.dataset.mermaidPending = 'true';
+          container.textContent = lines.length > 0
+            ? lines.map((line) => line.textContent ?? '').join('\n')
+            : block.textContent ?? '';
+          block.replaceWith(container);
+        });
+
+        if (blocks.length > 0) {
+          await mermaid.run({ querySelector: '.mermaid[data-mermaid-pending="true"]' });
+          document.querySelectorAll('.mermaid[data-mermaid-pending="true"]').forEach((block) => {
+            block.removeAttribute('data-mermaid-pending');
+          });
+        }
       }
+
+      function setupSectionDots() {
+        sectionDotTriggers.forEach((trigger) => trigger.kill());
+        sectionDotTriggers = [];
+        if (sectionDotResizeHandler) {
+          window.removeEventListener('resize', sectionDotResizeHandler);
+          sectionDotResizeHandler = undefined;
+        }
+
+        const nav = document.querySelector('[data-section-nav]');
+        const sections = Array.from(document.querySelectorAll('[data-section-id]'));
+        const links = Array.from(document.querySelectorAll('[data-section-link]'));
+        if (!nav || sections.length === 0 || links.length === 0) {
+          return;
+        }
+
+        function setRailPosition() {
+          const isMediumViewport = window.matchMedia('(min-width: 561px) and (max-width: 900px)').matches;
+          nav.setAttribute('style', `left: ${isMediumViewport ? '10px' : '24px'}; right: auto;`);
+        }
+
+        function setActive(id) {
+          links.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${id}`;
+            link.classList.toggle('active', isActive);
+            if (isActive) {
+              link.setAttribute('aria-current', 'true');
+            } else {
+              link.removeAttribute('aria-current');
+            }
+          });
+        }
+
+        const hashId = window.location.hash.replace('#', '');
+        setRailPosition();
+        setActive(hashId || sections[0].id);
+        sectionDotResizeHandler = setRailPosition;
+        window.addEventListener('resize', sectionDotResizeHandler, { passive: true });
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isSmallViewport = window.matchMedia('(max-width: 560px)').matches;
+
+        sections.forEach((section) => {
+          sectionDotTriggers.push(ScrollTrigger.create({
+            trigger: section,
+            start: 'top center',
+            end: 'bottom center',
+            onToggle: (self) => {
+              if (self.isActive) {
+                setActive(section.id);
+              }
+            },
+          }));
+        });
+
+        if (!prefersReducedMotion && !isSmallViewport && sections.length > 1) {
+          const snapPoints = sections.map((section) => (
+            section.offsetTop / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
+          ));
+          let scrollDirection = 0;
+
+          sectionDotTriggers.push(ScrollTrigger.create({
+            start: 0,
+            end: 'max',
+            onUpdate: (self) => {
+              scrollDirection = self.direction;
+            },
+            snap: {
+              snapTo: (value) => {
+                if (scrollDirection > 0) {
+                  return snapPoints.find((point) => point >= value - 0.001) ?? snapPoints[snapPoints.length - 1];
+                }
+                if (scrollDirection < 0) {
+                  return [...snapPoints].reverse().find((point) => point <= value + 0.001) ?? snapPoints[0];
+                }
+                return gsap.utils.snap(snapPoints, value);
+              },
+              duration: { min: 0.18, max: 0.36 },
+              delay: 0.08,
+              ease: 'power1.inOut',
+            },
+          }));
+        }
+
+        ScrollTrigger.refresh();
+      }
+
+      document.addEventListener('astro:page-load', () => {
+        renderMermaidBlocks();
+        setupSectionDots();
+      });
     </script>
   </body>
 </html>

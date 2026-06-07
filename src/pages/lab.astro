@@ -104,15 +104,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section>
 
   <script>
-    const runButton = document.querySelector('[data-run-http]');
-    const resetButton = document.querySelector('[data-reset-http]');
-    const packet = document.querySelector('[data-packet]');
-    const stage = document.querySelector('[data-request-stage]');
-    const steps = Array.from(document.querySelectorAll('[data-step]'));
-    const status = document.querySelector('[data-http-status]');
-    const cache = document.querySelector('[data-http-cache]');
-    const time = document.querySelector('[data-http-time]');
-
     const states = [
       { status: 'Pending', cache: '-', time: '12 ms' },
       { status: 'Resolving', cache: '-', time: '34 ms' },
@@ -122,30 +113,57 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       { status: 'Rendered', cache: 'Stored', time: '214 ms' },
     ];
 
-    function setStep(currentIndex) {
-      steps.forEach((step, stepIndex) => {
-        step.classList.toggle('active', stepIndex <= currentIndex);
+    function setupHttpLab() {
+      const root = document.querySelector('[data-http-lab]');
+      if (!root || root.getAttribute('data-http-ready') === 'true') {
+        return;
+      }
+      root.setAttribute('data-http-ready', 'true');
+
+      const runButton = root.querySelector('[data-run-http]');
+      const resetButton = root.querySelector('[data-reset-http]');
+      const packet = root.querySelector('[data-packet]');
+      const stage = root.querySelector('[data-request-stage]');
+      const steps = Array.from(root.querySelectorAll('[data-step]'));
+      const status = root.querySelector('[data-http-status]');
+      const cache = root.querySelector('[data-http-cache]');
+      const time = root.querySelector('[data-http-time]');
+      let pendingTimers = [];
+
+      function setStep(currentIndex) {
+        steps.forEach((step, stepIndex) => {
+          step.classList.toggle('active', stepIndex <= currentIndex);
+        });
+        const stageWidth = stage?.getBoundingClientRect().width ?? 0;
+        const travel = Math.max(stageWidth - 122, 0);
+        packet?.setAttribute('data-index', String(currentIndex));
+        packet?.setAttribute('style', `--packet-x: ${(travel * currentIndex) / Math.max(steps.length - 1, 1)}px`);
+        status && (status.textContent = states[currentIndex].status);
+        cache && (cache.textContent = states[currentIndex].cache);
+        time && (time.textContent = states[currentIndex].time);
+      }
+
+      function clearTimers() {
+        pendingTimers.forEach((timer) => window.clearTimeout(timer));
+        pendingTimers = [];
+      }
+
+      resetButton?.addEventListener('click', () => {
+        clearTimers();
+        setStep(0);
       });
-      const stageWidth = stage?.getBoundingClientRect().width ?? 0;
-      const travel = Math.max(stageWidth - 122, 0);
-      packet?.setAttribute('data-index', String(currentIndex));
-      packet?.setAttribute('style', `--packet-x: ${(travel * currentIndex) / Math.max(steps.length - 1, 1)}px`);
-      status && (status.textContent = states[currentIndex].status);
-      cache && (cache.textContent = states[currentIndex].cache);
-      time && (time.textContent = states[currentIndex].time);
+
+      runButton?.addEventListener('click', () => {
+        clearTimers();
+        setStep(0);
+        pendingTimers = steps.map((_, index) => (
+          window.setTimeout(() => setStep(index), index * 520)
+        ));
+      });
+
+      setStep(0);
     }
 
-    resetButton?.addEventListener('click', () => {
-      setStep(0);
-    });
-
-    runButton?.addEventListener('click', () => {
-      setStep(0);
-      steps.forEach((_, index) => {
-        window.setTimeout(() => setStep(index), index * 520);
-      });
-    });
-
-    setStep(0);
+    document.addEventListener('astro:page-load', setupHttpLab);
   </script>
 </BaseLayout>

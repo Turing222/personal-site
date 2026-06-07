@@ -79,6 +79,10 @@ const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
       if (!root || !indexNode) {
         return;
       }
+      if (root.getAttribute('data-search-ready') === 'true') {
+        return;
+      }
+      root.setAttribute('data-search-ready', 'true');
 
       const items = JSON.parse(indexNode.textContent || '[]');
       const input = root.querySelector('[data-search-input]');
@@ -145,10 +149,6 @@ const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
       render(items);
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setupSearch);
-    } else {
-      setupSearch();
-    }
+    document.addEventListener('astro:page-load', setupSearch);
   </script>
 </BaseLayout>
