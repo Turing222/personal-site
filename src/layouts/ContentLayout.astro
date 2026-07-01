@@ -34,7 +34,7 @@ const labels = lang === 'en'
   : { published: '发布于', updated: '更新于', series: '系列', changelog: '更新记录' };
 ---
 <BaseLayout title={title} description={description}>
-  <article class="content-shell">
+  <article class="content-shell" lang={lang === 'en' ? 'en' : 'zh-CN'}>
     <header class="content-hero">
       <p class="eyebrow">{eyebrow}</p>
       <h1>{title}</h1>
