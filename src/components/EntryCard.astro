@@ -20,15 +20,15 @@ const labels = lang === 'en'
   ? { published: 'Published', updated: 'Updated' }
   : { published: '发布', updated: '更新' };
 ---
-<a class="entry-card" href={href}>
-  <div>
+<a class="entry-card" href={href} aria-label={title}>
+  <div class="entry-card-copy">
     <h3>{title}</h3>
-    <p>{description}</p>
+    <p class="entry-card-description">{description}</p>
   </div>
-  <div class="card-meta">
+  <footer class="card-meta entry-card-meta">
     {formattedDate && <time datetime={date?.toISOString()}>{labels.published} {formattedDate}</time>}
     {formattedUpdatedDate && <time class="meta-updated" datetime={updatedDate?.toISOString()}>{labels.updated} {formattedUpdatedDate}</time>}
     {series && <span>{series}</span>}
     {tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
-  </div>
+  </footer>
 </a>

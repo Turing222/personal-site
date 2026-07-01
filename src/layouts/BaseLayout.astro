@@ -126,7 +126,7 @@ function isCurrentNavItem(match: string) {
 
         function setRailPosition() {
           const isMediumViewport = window.matchMedia('(min-width: 561px) and (max-width: 900px)').matches;
-          nav.setAttribute('style', `left: ${isMediumViewport ? '10px' : '24px'}; right: auto;`);
+          nav.setAttribute('style', `right: ${isMediumViewport ? '10px' : '24px'}; left: auto;`);
         }
 
         function setActive(id) {

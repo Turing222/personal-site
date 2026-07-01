@@ -11,7 +11,7 @@ const projects = (await getCollection('projects'))
 const posts = (await getCollection('posts'))
   .filter((post) => isPublished(post) && getEntryLang(post) === 'zh')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
+const featuredProjects = projects;
 const latestPosts = posts.slice(0, 4);
 ---
 <BaseLayout htmlClass="section-scroll-page">

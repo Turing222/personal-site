@@ -67,7 +67,7 @@
       vec3 amber = vec3(1.0, 0.62, 0.18);
       vec3 color = base + cyan * path * 0.62 + amber * field * 0.18 + cyan * core * 0.24;
       color += cyan * scan * 0.028;
-      color *= 1.0 - smoothstep(0.25, 1.18, length(centered)) * 0.62;
+      color *= 1.0 - smoothstep(0.38, 1.42, length(centered)) * 0.46;
 
       outColor = vec4(color, 0.96);
     }
