@@ -309,8 +309,9 @@ main {
 html.section-scroll-page #home-intro.hero-with-field.tracked-section {
   min-height: 100svh;
   min-height: 100dvh;
-  align-content: start;
-  padding-bottom: clamp(56px, 10vh, 112px);
+  align-content: center;
+  padding-top: calc(var(--header-height) + clamp(24px, 5vh, 48px));
+  padding-bottom: calc(var(--header-height) + clamp(24px, 5vh, 48px));
 }
 
 .hero-content {
@@ -1356,8 +1357,13 @@ pre.astro-code code {
     margin-top: calc(-1 * var(--header-height));
     margin-left: calc(50% - 50vw);
     padding-inline: var(--page-gutter);
-    padding-top: calc(clamp(120px, 28vw, 188px) + var(--header-height));
+    padding-top: calc(var(--header-height) + clamp(32px, 8vw, 64px));
     padding-bottom: clamp(64px, 12vw, 84px);
+  }
+
+  html.section-scroll-page #home-intro.hero-with-field.tracked-section {
+    padding-top: calc(var(--header-height) + clamp(20px, 4vh, 36px));
+    padding-bottom: calc(var(--header-height) + clamp(20px, 4vh, 36px));
   }
 
   .section-heading {
@@ -1388,6 +1394,7 @@ pre.astro-code code {
   html.section-scroll-page #home-intro.hero-with-field.tracked-section {
     min-height: 100svh;
     min-height: 100dvh;
+    align-content: center;
   }
 
   .section-dots {
