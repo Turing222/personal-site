@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const updates = (await getCollection('siteUpdates'))
+  .filter((update) => update.data.lang === 'en')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const formatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' });
+const typeLabels = {
+  feature: 'Feature',
+  design: 'Design',
+  content: 'Content',
+  maintenance: 'Maintenance',
+};
+---
+<BaseLayout title="Site Updates" description="A timeline of Dewflow Lab feature, content, and design changes.">
+  <section class="page-header">
+    <p class="eyebrow">Updates</p>
+    <h1>Site Updates</h1>
+    <p>A human-readable timeline for feature, content system, design, and maintenance changes.</p>
+  </section>
+  <section class="update-timeline" aria-label="Site update timeline">
+    {updates.map((update) => (
+      <article class="update-card">
+        <div class="update-date">
+          <time datetime={update.data.date.toISOString()}>{formatter.format(update.data.date)}</time>
+          <span>{typeLabels[update.data.type]}</span>
+        </div>
+        <div>
+          <h2>{update.data.title}</h2>
+          <p>{update.data.description}</p>
+          <div class="card-meta">
+            {update.data.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+</BaseLayout>

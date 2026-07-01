@@ -2,13 +2,13 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EntryCard from '../../components/EntryCard.astro';
-import { entryUrl, getEntryLang } from '../../utils/content';
+import { entryUrl, getEntryLang, isPublished } from '../../utils/content';
 
 const projects = (await getCollection('projects'))
-  .filter((project) => getEntryLang(project) === 'en')
+  .filter((project) => isPublished(project) && getEntryLang(project) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const posts = (await getCollection('posts'))
-  .filter((post) => getEntryLang(post) === 'en')
+  .filter((post) => isPublished(post) && getEntryLang(post) === 'en')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
 const latestPosts = posts.slice(0, 4);
@@ -32,7 +32,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
     <div class="card-grid">
       {featuredProjects.map((project) => (
-        <EntryCard title={project.data.title} description={project.data.description} href={entryUrl('projects', project)} date={project.data.date} tags={project.data.tags} />
+        <EntryCard title={project.data.title} description={project.data.description} href={entryUrl('projects', project)} date={project.data.date} updatedDate={project.data.updatedDate} tags={project.data.tags} series={project.data.series} lang="en" />
       ))}
     </div>
   </section>
@@ -44,7 +44,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
     <div class="list-grid">
       {latestPosts.map((post) => (
-        <EntryCard title={post.data.title} description={post.data.description} href={entryUrl('posts', post)} date={post.data.date} tags={post.data.tags} />
+        <EntryCard title={post.data.title} description={post.data.description} href={entryUrl('posts', post)} date={post.data.date} updatedDate={post.data.updatedDate} tags={post.data.tags} series={post.data.series} lang="en" />
       ))}
     </div>
   </section>

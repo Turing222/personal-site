@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import SearchPage from '../../components/SearchPage.astro';
-import { entryUrl, getEntryLang } from '../../utils/content';
+import { entryUrl, getEntryLang, isPublished } from '../../utils/content';
 
-const enProjects = (await getCollection('projects')).filter((entry) => getEntryLang(entry) === 'en');
-const enPosts = (await getCollection('posts')).filter((entry) => getEntryLang(entry) === 'en');
+const enProjects = (await getCollection('projects')).filter((entry) => isPublished(entry) && getEntryLang(entry) === 'en');
+const enPosts = (await getCollection('posts')).filter((entry) => isPublished(entry) && getEntryLang(entry) === 'en');
 const formatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' });
 const items = [
   ...enProjects.map((entry) => ({

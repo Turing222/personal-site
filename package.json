@@ -2,7 +2,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "new:post": "node scripts/new-entry.mjs --type post",
+    "new:project": "node scripts/new-entry.mjs --type project"
   },
   "dependencies": {
     "@astrojs/mdx": "latest",

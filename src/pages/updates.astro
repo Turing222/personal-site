@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const updates = (await getCollection('siteUpdates'))
+  .filter((update) => update.data.lang === 'zh')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const formatter = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' });
+const typeLabels = {
+  feature: '功能',
+  design: '设计',
+  content: '内容',
+  maintenance: '维护',
+};
+---
+<BaseLayout title="站点更新" description="记录 Dewflow Lab 的功能、内容和设计演进。">
+  <section class="page-header">
+    <p class="eyebrow">Updates</p>
+    <h1>站点更新</h1>
+    <p>记录这个个人站自身的功能、内容系统、设计和维护变更。</p>
+  </section>
+  <section class="update-timeline" aria-label="站点更新时间线">
+    {updates.map((update) => (
+      <article class="update-card">
+        <div class="update-date">
+          <time datetime={update.data.date.toISOString()}>{formatter.format(update.data.date)}</time>
+          <span>{typeLabels[update.data.type]}</span>
+        </div>
+        <div>
+          <h2>{update.data.title}</h2>
+          <p>{update.data.description}</p>
+          <div class="card-meta">
+            {update.data.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+</BaseLayout>

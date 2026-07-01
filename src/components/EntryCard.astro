@@ -4,11 +4,21 @@ interface Props {
   description: string;
   href: string;
   date?: Date;
+  updatedDate?: Date;
   tags?: string[];
+  series?: string;
+  lang?: 'zh' | 'en';
 }
 
-const { title, description, href, date, tags = [] } = Astro.props;
-const formattedDate = date ? new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(date) : undefined;
+const { title, description, href, date, updatedDate, tags = [], series, lang = 'zh' } = Astro.props;
+const locale = lang === 'en' ? 'en-US' : 'zh-CN';
+const formatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+const formattedDate = date ? formatter.format(date) : undefined;
+const hasUpdatedDate = date && updatedDate && updatedDate.toDateString() !== date.toDateString();
+const formattedUpdatedDate = hasUpdatedDate ? formatter.format(updatedDate) : undefined;
+const labels = lang === 'en'
+  ? { published: 'Published', updated: 'Updated' }
+  : { published: '发布', updated: '更新' };
 ---
 <a class="entry-card" href={href}>
   <div>
@@ -16,7 +26,9 @@ const formattedDate = date ? new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medi
     <p>{description}</p>
   </div>
   <div class="card-meta">
-    {formattedDate && <time datetime={date?.toISOString()}>{formattedDate}</time>}
+    {formattedDate && <time datetime={date?.toISOString()}>{labels.published} {formattedDate}</time>}
+    {formattedUpdatedDate && <time class="meta-updated" datetime={updatedDate?.toISOString()}>{labels.updated} {formattedUpdatedDate}</time>}
+    {series && <span>{series}</span>}
     {tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
   </div>
 </a>

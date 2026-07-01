@@ -5,6 +5,10 @@ export type ContentEntry = CollectionEntry<'posts'> | CollectionEntry<'projects'
 
 const langSet = new Set(['zh', 'en']);
 
+export function isPublished(entry: ContentEntry) {
+  return !entry.data.draft || !import.meta.env.PROD;
+}
+
 export function getEntryLang(entry: ContentEntry): SiteLang {
   const frontmatterLang = 'lang' in entry.data ? entry.data.lang : undefined;
   if (frontmatterLang === 'en' || frontmatterLang === 'zh') {

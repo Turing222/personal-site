@@ -1,12 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getEntryLang, tagToSlug } from '../../utils/content';
+import { getEntryLang, isPublished, tagToSlug } from '../../utils/content';
 
 const entries = [
   ...(await getCollection('posts')),
   ...(await getCollection('projects')),
-].filter((entry) => getEntryLang(entry) === 'zh');
+].filter((entry) => isPublished(entry) && getEntryLang(entry) === 'zh');
 
 const tagCounts = new Map<string, number>();
 for (const entry of entries) {

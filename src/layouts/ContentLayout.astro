@@ -5,12 +5,33 @@ interface Props {
   title: string;
   description: string;
   date: Date;
+  updatedDate?: Date;
   tags?: string[];
+  series?: string;
+  changelog?: Array<{ date: Date; note: string }>;
   eyebrow?: string;
+  lang?: 'zh' | 'en';
 }
 
-const { title, description, date, tags = [], eyebrow = 'Note' } = Astro.props;
-const formattedDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(date);
+const {
+  title,
+  description,
+  date,
+  updatedDate,
+  tags = [],
+  series,
+  changelog = [],
+  eyebrow = 'Note',
+  lang = 'zh',
+} = Astro.props;
+const locale = lang === 'en' ? 'en-US' : 'zh-CN';
+const formatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+const formattedDate = formatter.format(date);
+const hasUpdatedDate = updatedDate && updatedDate.toDateString() !== date.toDateString();
+const formattedUpdatedDate = hasUpdatedDate ? formatter.format(updatedDate) : undefined;
+const labels = lang === 'en'
+  ? { published: 'Published', updated: 'Updated', series: 'Series', changelog: 'Changelog' }
+  : { published: '发布于', updated: '更新于', series: '系列', changelog: '更新记录' };
 ---
 <BaseLayout title={title} description={description}>
   <article class="content-shell">
@@ -19,12 +40,27 @@ const formattedDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).
       <h1>{title}</h1>
       <p>{description}</p>
       <div class="meta-row">
-        <time datetime={date.toISOString()}>{formattedDate}</time>
+        <time datetime={date.toISOString()}>{labels.published} {formattedDate}</time>
+        {hasUpdatedDate && <time class="meta-updated" datetime={updatedDate.toISOString()}>{labels.updated} {formattedUpdatedDate}</time>}
+        {series && <span>{labels.series}: {series}</span>}
         {tags.map((tag) => <span>{tag}</span>)}
       </div>
     </header>
     <div class="prose">
       <slot />
     </div>
+    {changelog.length > 0 && (
+      <section class="content-changelog" aria-labelledby="content-changelog-title">
+        <h2 id="content-changelog-title">{labels.changelog}</h2>
+        <ol class="timeline">
+          {changelog.map((item) => (
+            <li>
+              <time datetime={item.date.toISOString()}>{formatter.format(item.date)}</time>
+              <span>{item.note}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
   </article>
 </BaseLayout>

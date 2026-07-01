@@ -2,10 +2,10 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EntryCard from '../../components/EntryCard.astro';
-import { entryUrl, getEntryLang } from '../../utils/content';
+import { entryUrl, getEntryLang, isPublished } from '../../utils/content';
 
 const posts = (await getCollection('posts'))
-  .filter((post) => getEntryLang(post) === 'zh')
+  .filter((post) => isPublished(post) && getEntryLang(post) === 'zh')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 <BaseLayout title="工程笔记" description="文章、技术笔记与工程记录。">
@@ -16,7 +16,7 @@ const posts = (await getCollection('posts'))
   </section>
   <section class="list-grid">
     {posts.map((post) => (
-      <EntryCard title={post.data.title} description={post.data.description} href={entryUrl('posts', post)} date={post.data.date} tags={post.data.tags} />
+      <EntryCard title={post.data.title} description={post.data.description} href={entryUrl('posts', post)} date={post.data.date} updatedDate={post.data.updatedDate} tags={post.data.tags} series={post.data.series} lang="zh" />
     ))}
   </section>
 </BaseLayout>
