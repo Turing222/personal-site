@@ -1,0 +1,283 @@
+<div class="hero-field" data-hero-field aria-hidden="true">
+  <canvas data-hero-webgl></canvas>
+  <canvas data-hero-particles></canvas>
+</div>
+
+<script>
+  const vertexShaderSource = `#version 300 es
+    precision highp float;
+    const vec2 positions[3] = vec2[3](
+      vec2(-1.0, -1.0),
+      vec2(3.0, -1.0),
+      vec2(-1.0, 3.0)
+    );
+    void main() {
+      gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
+    }
+  `;
+
+  const fragmentShaderSource = `#version 300 es
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform vec2 u_pointer;
+    uniform float u_time;
+    out vec4 outColor;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+        mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+        u.y
+      );
+    }
+
+    float fbm(vec2 p) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      for (int i = 0; i < 5; i++) {
+        value += amplitude * noise(p);
+        p *= 2.03;
+        amplitude *= 0.52;
+      }
+      return value;
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      vec2 centered = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+      vec2 pointer = (u_pointer - 0.5) * vec2(1.25, -0.8);
+      float t = u_time * 0.08;
+
+      float streamA = sin((centered.x * 3.2 + centered.y * 1.7 + t * 2.0) * 3.14159);
+      float streamB = sin((centered.x * -1.4 + centered.y * 3.0 - t * 1.5) * 3.14159);
+      float field = fbm(centered * 2.1 + pointer + vec2(t, -t * 0.64));
+      float path = smoothstep(0.62, 1.0, streamA * 0.34 + streamB * 0.22 + field);
+      float core = smoothstep(0.16, 0.0, length(centered - pointer * 0.28));
+      float scan = smoothstep(0.98, 0.55, abs(fract((uv.y + t * 0.12) * 18.0) - 0.5));
+
+      vec3 base = vec3(0.015, 0.026, 0.045);
+      vec3 cyan = vec3(0.18, 0.73, 1.0);
+      vec3 amber = vec3(1.0, 0.62, 0.18);
+      vec3 color = base + cyan * path * 0.62 + amber * field * 0.18 + cyan * core * 0.24;
+      color += cyan * scan * 0.028;
+      color *= 1.0 - smoothstep(0.25, 1.18, length(centered)) * 0.62;
+
+      outColor = vec4(color, 0.96);
+    }
+  `;
+
+  function setupHeroFields() {
+    document.querySelectorAll('[data-hero-field]').forEach((root) => {
+      if (!(root instanceof HTMLElement) || root.dataset.ready === 'true') {
+        return;
+      }
+      root.dataset.ready = 'true';
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const glCanvas = root.querySelector('[data-hero-webgl]');
+      const particleCanvas = root.querySelector('[data-hero-particles]');
+      if (!(glCanvas instanceof HTMLCanvasElement) || !(particleCanvas instanceof HTMLCanvasElement) || reduceMotion) {
+        root.classList.add('is-static');
+        return;
+      }
+
+      const gl = glCanvas.getContext('webgl2', {
+        alpha: true,
+        antialias: false,
+        powerPreference: 'low-power',
+      });
+      const particleContext = particleCanvas.getContext('2d');
+      if (!gl || !particleContext) {
+        root.classList.add('is-static');
+        return;
+      }
+
+      const program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+      if (!program) {
+        root.classList.add('is-static');
+        return;
+      }
+
+      const uniforms = {
+        resolution: gl.getUniformLocation(program, 'u_resolution'),
+        pointer: gl.getUniformLocation(program, 'u_pointer'),
+        time: gl.getUniformLocation(program, 'u_time'),
+      };
+
+      let animationFrame = 0;
+      let isVisible = true;
+      let isInView = true;
+      let width = 0;
+      let height = 0;
+      let startedAt = performance.now();
+      let pointerX = 0.42;
+      let pointerY = 0.48;
+      let nodes = [];
+
+      const observer = new IntersectionObserver((entries) => {
+        isInView = entries.some((entry) => entry.isIntersecting);
+        updateLoop();
+      }, { threshold: 0.05 });
+
+      function resize() {
+        const rect = root.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        width = Math.max(Math.floor(rect.width * dpr), 1);
+        height = Math.max(Math.floor(rect.height * dpr), 1);
+        glCanvas.width = width;
+        glCanvas.height = height;
+        particleCanvas.width = width;
+        particleCanvas.height = height;
+        glCanvas.style.width = `${rect.width}px`;
+        glCanvas.style.height = `${rect.height}px`;
+        particleCanvas.style.width = `${rect.width}px`;
+        particleCanvas.style.height = `${rect.height}px`;
+        gl.viewport(0, 0, width, height);
+        nodes = createNodes(rect.width < 720 ? 34 : 74);
+      }
+
+      function createNodes(count) {
+        return Array.from({ length: count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.24,
+          vy: (Math.random() - 0.5) * 0.2,
+          phase: Math.random() * Math.PI * 2,
+        }));
+      }
+
+      function drawParticles(time) {
+        const ctx = particleContext;
+        ctx.clearRect(0, 0, width, height);
+        ctx.lineWidth = 1;
+        const pullX = pointerX * width;
+        const pullY = pointerY * height;
+
+        nodes.forEach((node) => {
+          node.x += node.vx + (pullX - node.x) * 0.0004;
+          node.y += node.vy + (pullY - node.y) * 0.00028;
+          if (node.x < -20) node.x = width + 20;
+          if (node.x > width + 20) node.x = -20;
+          if (node.y < -20) node.y = height + 20;
+          if (node.y > height + 20) node.y = -20;
+        });
+
+        for (let i = 0; i < nodes.length; i += 1) {
+          for (let j = i + 1; j < nodes.length; j += 1) {
+            const a = nodes[i];
+            const b = nodes[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distance = Math.hypot(dx, dy);
+            const limit = width < 900 ? 120 : 150;
+            if (distance < limit) {
+              const alpha = (1 - distance / limit) * 0.18;
+              ctx.strokeStyle = `rgba(100, 210, 255, ${alpha})`;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        nodes.forEach((node) => {
+          const flicker = 0.46 + Math.sin(time * 0.001 + node.phase) * 0.16;
+          ctx.fillStyle = `rgba(244, 239, 231, ${flicker})`;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, width < 900 ? 1.2 : 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function frame(now) {
+        if (!root.isConnected) {
+          cancelAnimationFrame(animationFrame);
+          observer.disconnect();
+          return;
+        }
+
+        const time = (now - startedAt) / 1000;
+        gl.useProgram(program);
+        gl.uniform2f(uniforms.resolution, width, height);
+        gl.uniform2f(uniforms.pointer, pointerX, pointerY);
+        gl.uniform1f(uniforms.time, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        drawParticles(now);
+        animationFrame = requestAnimationFrame(frame);
+      }
+
+      function updateLoop() {
+        const shouldRun = isVisible && isInView;
+        if (shouldRun && animationFrame === 0) {
+          startedAt = performance.now();
+          animationFrame = requestAnimationFrame(frame);
+        }
+        if (!shouldRun && animationFrame !== 0) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        }
+      }
+
+      root.addEventListener('pointermove', (event) => {
+        const rect = root.getBoundingClientRect();
+        pointerX = (event.clientX - rect.left) / Math.max(rect.width, 1);
+        pointerY = (event.clientY - rect.top) / Math.max(rect.height, 1);
+      }, { passive: true });
+
+      window.addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', () => {
+        isVisible = document.visibilityState === 'visible';
+        updateLoop();
+      });
+
+      resize();
+      observer.observe(root);
+      updateLoop();
+    });
+  }
+
+  function createProgram(gl, vertexSource, fragmentSource) {
+    const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+    const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+    if (!vertexShader || !fragmentShader) {
+      return undefined;
+    }
+
+    const program = gl.createProgram();
+    if (!program) {
+      return undefined;
+    }
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      return undefined;
+    }
+    return program;
+  }
+
+  function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    if (!shader) {
+      return undefined;
+    }
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      return undefined;
+    }
+    return shader;
+  }
+
+  document.addEventListener('astro:page-load', setupHeroFields);
+  setupHeroFields();
+</script>

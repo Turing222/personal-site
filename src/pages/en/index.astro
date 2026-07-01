@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EntryCard from '../../components/EntryCard.astro';
+import HeroField from '../../components/HeroField.astro';
 import { entryUrl, getEntryLang, isPublished } from '../../utils/content';
 
 const projects = (await getCollection('projects'))
@@ -13,19 +14,22 @@ const posts = (await getCollection('posts'))
 const featuredProjects = projects.filter((item) => item.data.featured).slice(0, 3);
 const latestPosts = posts.slice(0, 4);
 ---
-<BaseLayout title="Dewflow Lab" description="Personal project lab and technical review archive." htmlClass="snap-scroll-page">
-  <section id="home-intro" class="hero-section snap-section" data-section-id>
-    <p class="eyebrow">Personal Project Lab</p>
-    <h1>Project experiments, engineering notes, and technical reviews.</h1>
-    <p>Dewflow Lab records project ideas, implementation notes, deployment decisions, backend engineering, databases, AI/RAG practice, and frontend experiments.</p>
-    <div class="hero-actions">
-      <a class="button primary" href="/en/projects">View Projects</a>
-      <a class="button" href="/en/posts">Read Posts</a>
-      <a class="button" href="/">中文</a>
+<BaseLayout title="Dewflow Lab" description="Personal project lab and technical review archive." htmlClass="section-scroll-page">
+  <section id="home-intro" class="hero-section hero-with-field tracked-section" data-section-id>
+    <HeroField />
+    <div class="hero-content">
+      <p class="eyebrow">Personal Project Lab</p>
+      <h1>Project experiments, engineering notes, and technical reviews.</h1>
+      <p>Dewflow Lab records project ideas, implementation notes, deployment decisions, backend engineering, databases, AI/RAG practice, and frontend experiments.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="/en/projects">View Projects</a>
+        <a class="button" href="/en/posts">Read Posts</a>
+        <a class="button" href="/">中文</a>
+      </div>
     </div>
   </section>
 
-  <section id="featured-projects" class="section-grid snap-section" data-section-id>
+  <section id="featured-projects" class="section-grid tracked-section" data-section-id>
     <div class="section-heading">
       <p class="eyebrow">Featured</p>
       <h2>Featured Projects</h2>
@@ -37,7 +41,7 @@ const latestPosts = posts.slice(0, 4);
     </div>
   </section>
 
-  <section id="latest-notes" class="section-grid snap-section" data-section-id>
+  <section id="latest-notes" class="section-grid tracked-section" data-section-id>
     <div class="section-heading">
       <p class="eyebrow">Latest</p>
       <h2>Latest Posts</h2>

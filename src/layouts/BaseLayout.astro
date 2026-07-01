@@ -47,15 +47,16 @@ const switchLabel = isEnglish ? '中文' : 'EN';
       <span>Built with Astro, MDX and Cloudflare Pages.</span>
     </footer>
     <script>
-      import gsap from 'gsap';
-      import { ScrollTrigger } from 'gsap/ScrollTrigger';
       import mermaid from 'mermaid';
 
-      gsap.registerPlugin(ScrollTrigger);
-      mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+      });
 
       let sectionDotResizeHandler;
-      let sectionDotTriggers = [];
+      let sectionDotScrollHandler;
+      let sectionDotAbortController;
 
       async function renderMermaidBlocks() {
         const blocks = Array.from(document.querySelectorAll('pre[data-language="mermaid"]'));
@@ -80,11 +81,18 @@ const switchLabel = isEnglish ? '中文' : 'EN';
       }
 
       function setupSectionDots() {
-        sectionDotTriggers.forEach((trigger) => trigger.kill());
-        sectionDotTriggers = [];
         if (sectionDotResizeHandler) {
           window.removeEventListener('resize', sectionDotResizeHandler);
           sectionDotResizeHandler = undefined;
+        }
+        if (sectionDotScrollHandler) {
+          window.removeEventListener('scroll', sectionDotScrollHandler);
+          window.removeEventListener('resize', sectionDotScrollHandler);
+          sectionDotScrollHandler = undefined;
+        }
+        if (sectionDotAbortController) {
+          sectionDotAbortController.abort();
+          sectionDotAbortController = undefined;
         }
 
         const nav = document.querySelector('[data-section-nav]');
@@ -118,51 +126,64 @@ const switchLabel = isEnglish ? '中文' : 'EN';
         window.addEventListener('resize', sectionDotResizeHandler, { passive: true });
 
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const isSmallViewport = window.matchMedia('(max-width: 560px)').matches;
 
-        sections.forEach((section) => {
-          sectionDotTriggers.push(ScrollTrigger.create({
-            trigger: section,
-            start: 'top center',
-            end: 'bottom center',
-            onToggle: (self) => {
-              if (self.isActive) {
-                setActive(section.id);
-              }
-            },
-          }));
-        });
+        function updateActiveSection() {
+          const viewportCenter = window.innerHeight / 2;
+          let nearestSection = sections[0];
+          let nearestDistance = Number.POSITIVE_INFINITY;
 
-        if (!prefersReducedMotion && !isSmallViewport && sections.length > 1) {
-          const snapPoints = sections.map((section) => (
-            section.offsetTop / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
-          ));
-          let scrollDirection = 0;
+          sections.forEach((section) => {
+            const rect = section.getBoundingClientRect();
+            const sectionCenter = rect.top + rect.height / 2;
+            const distance = Math.abs(sectionCenter - viewportCenter);
+            if (distance < nearestDistance) {
+              nearestDistance = distance;
+              nearestSection = section;
+            }
+          });
 
-          sectionDotTriggers.push(ScrollTrigger.create({
-            start: 0,
-            end: 'max',
-            onUpdate: (self) => {
-              scrollDirection = self.direction;
-            },
-            snap: {
-              snapTo: (value) => {
-                if (scrollDirection > 0) {
-                  return snapPoints.find((point) => point >= value - 0.001) ?? snapPoints[snapPoints.length - 1];
-                }
-                if (scrollDirection < 0) {
-                  return [...snapPoints].reverse().find((point) => point <= value + 0.001) ?? snapPoints[0];
-                }
-                return gsap.utils.snap(snapPoints, value);
-              },
-              duration: { min: 0.18, max: 0.36 },
-              delay: 0.08,
-              ease: 'power1.inOut',
-            },
-          }));
+          if (nearestSection?.id) {
+            setActive(nearestSection.id);
+          }
         }
 
-        ScrollTrigger.refresh();
+        let pendingFrame = 0;
+        sectionDotScrollHandler = () => {
+          if (pendingFrame) {
+            return;
+          }
+          pendingFrame = window.requestAnimationFrame(() => {
+            pendingFrame = 0;
+            updateActiveSection();
+          });
+        };
+        window.addEventListener('scroll', sectionDotScrollHandler, { passive: true });
+        window.addEventListener('resize', sectionDotScrollHandler, { passive: true });
+
+        sectionDotAbortController = new AbortController();
+        links.forEach((link) => {
+          link.addEventListener('click', (event) => {
+            const href = link.getAttribute('href');
+            if (!href?.startsWith('#')) {
+              return;
+            }
+
+            const target = document.getElementById(href.slice(1));
+            if (!target) {
+              return;
+            }
+
+            event.preventDefault();
+            setActive(target.id);
+            history.replaceState(null, '', href);
+            target.scrollIntoView({
+              behavior: prefersReducedMotion ? 'auto' : 'smooth',
+              block: 'start',
+            });
+          }, { signal: sectionDotAbortController.signal });
+        });
+
+        updateActiveSection();
       }
 
       document.addEventListener('astro:page-load', () => {

@@ -10,7 +10,6 @@
     "@astrojs/mdx": "latest",
     "astro": "latest",
     "fuse.js": "^7.4.2",
-    "gsap": "^3.15.0",
     "mermaid": "^11.15.0",
     "typescript": "latest"
   }
