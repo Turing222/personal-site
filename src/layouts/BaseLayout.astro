@@ -14,6 +14,21 @@ const isEnglish = Astro.url.pathname.startsWith('/en');
 const navPrefix = isEnglish ? '/en' : '';
 const switchHref = isEnglish ? '/' : '/en/';
 const switchLabel = isEnglish ? '中文' : 'EN';
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const navItems = [
+  { href: `${navPrefix}/projects`, label: 'Projects', match: `${navPrefix}/projects` },
+  { href: `${navPrefix}/posts`, label: 'Posts', match: `${navPrefix}/posts` },
+  { href: `${navPrefix}/updates`, label: 'Updates', match: `${navPrefix}/updates` },
+  { href: `${navPrefix}/tags`, label: 'Tags', match: `${navPrefix}/tags` },
+  { href: `${navPrefix}/search`, label: 'Search', match: `${navPrefix}/search` },
+  { href: '/lab', label: 'Lab', match: '/lab' },
+  { href: `${navPrefix}/about`, label: 'About', match: `${navPrefix}/about` },
+];
+
+function isCurrentNavItem(match: string) {
+  const normalizedMatch = match.replace(/\/$/, '') || '/';
+  return currentPath === normalizedMatch || currentPath.startsWith(`${normalizedMatch}/`);
+}
 ---
 <!doctype html>
 <html lang={isEnglish ? 'en' : 'zh-CN'} class={htmlClass}>
@@ -26,18 +41,18 @@ const switchLabel = isEnglish ? '中文' : 'EN';
     <ClientRouter />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="/">Dewflow Lab</a>
-      <nav aria-label="Primary navigation">
-        <a href={`${navPrefix}/projects`}>Projects</a>
-        <a href={`${navPrefix}/posts`}>Posts</a>
-        <a href={`${navPrefix}/updates`}>Updates</a>
-        <a href={`${navPrefix}/tags`}>Tags</a>
-        <a href={`${navPrefix}/search`}>Search</a>
-        <a href="/lab">Lab</a>
-        <a href={`${navPrefix}/about`}>About</a>
-        <a href={switchHref}>{switchLabel}</a>
-      </nav>
+    <header class="site-header" data-site-header>
+      <div class="site-header-inner">
+        <a class="brand" href="/">Dewflow Lab</a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          {navItems.map((item) => (
+            <a href={item.href} aria-current={isCurrentNavItem(item.match) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+          <a href={switchHref}>{switchLabel}</a>
+        </nav>
+      </div>
     </header>
     <main>
       <slot />
@@ -57,6 +72,8 @@ const switchLabel = isEnglish ? '中文' : 'EN';
       let sectionDotResizeHandler;
       let sectionDotScrollHandler;
       let sectionDotAbortController;
+      let headerScrollHandler;
+      let headerScrollFrame = 0;
 
       async function renderMermaidBlocks() {
         const blocks = Array.from(document.querySelectorAll('pre[data-language="mermaid"]'));
@@ -186,8 +203,42 @@ const switchLabel = isEnglish ? '中文' : 'EN';
         updateActiveSection();
       }
 
+      function setupHeaderState() {
+        if (headerScrollHandler) {
+          window.removeEventListener('scroll', headerScrollHandler);
+          headerScrollHandler = undefined;
+        }
+        if (headerScrollFrame) {
+          window.cancelAnimationFrame(headerScrollFrame);
+          headerScrollFrame = 0;
+        }
+
+        const header = document.querySelector('[data-site-header]');
+        if (!header) {
+          return;
+        }
+
+        function updateHeaderState() {
+          header.classList.toggle('is-scrolled', window.scrollY > 12);
+        }
+
+        headerScrollHandler = () => {
+          if (headerScrollFrame) {
+            return;
+          }
+          headerScrollFrame = window.requestAnimationFrame(() => {
+            headerScrollFrame = 0;
+            updateHeaderState();
+          });
+        };
+
+        updateHeaderState();
+        window.addEventListener('scroll', headerScrollHandler, { passive: true });
+      }
+
       document.addEventListener('astro:page-load', () => {
         renderMermaidBlocks();
+        setupHeaderState();
         setupSectionDots();
       });
     </script>
