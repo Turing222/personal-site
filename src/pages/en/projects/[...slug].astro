@@ -1,20 +1,24 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import ContentLayout from '../../../layouts/ContentLayout.astro';
-import { getEntryLang, isPublished, stripLangFromId } from '../../../utils/content';
+import { getEntryLang, getTranslationUrl, isPublished, stripLangFromId } from '../../../utils/content';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
   return projects
     .filter((project) => isPublished(project) && getEntryLang(project) === 'en')
-    .map((project) => ({ params: { slug: stripLangFromId(project.id) }, props: { project } }));
+    .map((project) => ({
+      params: { slug: stripLangFromId(project.id) },
+      props: { project, alternateUrl: getTranslationUrl('projects', project, projects) ?? null },
+    }));
 }
 
 interface Props {
   project: CollectionEntry<'projects'>;
+  alternateUrl: string | null;
 }
 
-const { project } = Astro.props;
+const { project, alternateUrl } = Astro.props;
 const { Content } = await render(project);
 ---
 <ContentLayout
@@ -27,6 +31,8 @@ const { Content } = await render(project);
   changelog={project.data.changelog}
   eyebrow="Project Review"
   lang="en"
+  alternateUrl={alternateUrl}
+  image={project.data.cover}
 >
   <div class="project-meta-panel">
     {project.data.stack.length > 0 && (

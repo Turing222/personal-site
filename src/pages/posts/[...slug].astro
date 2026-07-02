@@ -1,20 +1,24 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import ContentLayout from '../../layouts/ContentLayout.astro';
-import { getEntryLang, isPublished, stripLangFromId } from '../../utils/content';
+import { getEntryLang, getTranslationUrl, isPublished, stripLangFromId } from '../../utils/content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
   return posts
     .filter((post) => isPublished(post) && getEntryLang(post) === 'zh')
-    .map((post) => ({ params: { slug: stripLangFromId(post.id) }, props: { post } }));
+    .map((post) => ({
+      params: { slug: stripLangFromId(post.id) },
+      props: { post, alternateUrl: getTranslationUrl('posts', post, posts) ?? null },
+    }));
 }
 
 interface Props {
   post: CollectionEntry<'posts'>;
+  alternateUrl: string | null;
 }
 
-const { post } = Astro.props;
+const { post, alternateUrl } = Astro.props;
 const { Content } = await render(post);
 ---
 <ContentLayout
@@ -27,6 +31,8 @@ const { Content } = await render(post);
   changelog={post.data.changelog}
   eyebrow="Engineering Note"
   lang="zh"
+  alternateUrl={alternateUrl}
+  image={post.data.cover}
 >
   <Content />
 </ContentLayout>

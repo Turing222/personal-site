@@ -11,6 +11,8 @@ interface Props {
   changelog?: Array<{ date: Date; note: string }>;
   eyebrow?: string;
   lang?: 'zh' | 'en';
+  alternateUrl?: string | null;
+  image?: string;
 }
 
 const {
@@ -23,6 +25,8 @@ const {
   changelog = [],
   eyebrow = 'Note',
   lang = 'zh',
+  alternateUrl,
+  image,
 } = Astro.props;
 const locale = lang === 'en' ? 'en-US' : 'zh-CN';
 const formatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
@@ -33,7 +37,7 @@ const labels = lang === 'en'
   ? { published: 'Published', updated: 'Updated', series: 'Series', changelog: 'Changelog' }
   : { published: '发布于', updated: '更新于', series: '系列', changelog: '更新记录' };
 ---
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} type="article" alternateUrl={alternateUrl} image={image}>
   <article class="content-shell" lang={lang === 'en' ? 'en' : 'zh-CN'}>
     <header class="content-hero">
       <p class="eyebrow">{eyebrow}</p>

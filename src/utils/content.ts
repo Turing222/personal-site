@@ -34,6 +34,26 @@ export function entryUrl(collection: 'posts' | 'projects', entry: ContentEntry) 
   return `${prefix}/${slug}/`;
 }
 
+export function getTranslationUrl(
+  collection: 'posts' | 'projects',
+  entry: ContentEntry,
+  allEntries: ContentEntry[],
+): string | undefined {
+  const lang = getEntryLang(entry);
+  const key = entry.data.translationKey;
+  const slug = stripLangFromId(entry.id);
+  const counterpart = allEntries.find((candidate) => {
+    if (getEntryLang(candidate) === lang || !isPublished(candidate)) {
+      return false;
+    }
+    if (key && candidate.data.translationKey === key) {
+      return true;
+    }
+    return stripLangFromId(candidate.id) === slug;
+  });
+  return counterpart ? entryUrl(collection, counterpart) : undefined;
+}
+
 export function tagToSlug(tag: string) {
   return tag.trim().toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
 }
