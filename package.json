@@ -7,10 +7,12 @@
     "new:project": "node scripts/new-entry.mjs --type project"
   },
   "dependencies": {
-    "@astrojs/mdx": "latest",
-    "astro": "latest",
-    "fuse.js": "^7.4.2",
-    "mermaid": "^11.15.0",
-    "typescript": "latest"
+    "@astrojs/mdx": "7.0.1",
+    "astro": "7.0.5",
+    "fuse.js": "7.4.2",
+    "mermaid": "11.16.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
   }
 }

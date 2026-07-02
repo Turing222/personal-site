@@ -67,21 +67,30 @@ function isCurrentNavItem(match: string) {
       <span>Built with Astro, MDX and Cloudflare Pages.</span>
     </footer>
     <script>
-      import mermaid from 'mermaid';
-
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'dark',
-      });
-
+      let mermaidModulePromise;
       let sectionDotResizeHandler;
       let sectionDotScrollHandler;
       let sectionDotAbortController;
       let headerScrollHandler;
       let headerScrollFrame = 0;
 
+      async function getMermaid() {
+        mermaidModulePromise ??= import('mermaid').then(({ default: mermaid }) => {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+          });
+          return mermaid;
+        });
+        return mermaidModulePromise;
+      }
+
       async function renderMermaidBlocks() {
         const blocks = Array.from(document.querySelectorAll('pre[data-language="mermaid"]'));
+        if (blocks.length === 0) {
+          return;
+        }
+
         blocks.forEach((block, index) => {
           const container = document.createElement('div');
           const lines = Array.from(block.querySelectorAll('.line'));
@@ -94,12 +103,11 @@ function isCurrentNavItem(match: string) {
           block.replaceWith(container);
         });
 
-        if (blocks.length > 0) {
-          await mermaid.run({ querySelector: '.mermaid[data-mermaid-pending="true"]' });
-          document.querySelectorAll('.mermaid[data-mermaid-pending="true"]').forEach((block) => {
-            block.removeAttribute('data-mermaid-pending');
-          });
-        }
+        const mermaid = await getMermaid();
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-pending="true"]' });
+        document.querySelectorAll('.mermaid[data-mermaid-pending="true"]').forEach((block) => {
+          block.removeAttribute('data-mermaid-pending');
+        });
       }
 
       function setupSectionDots() {
