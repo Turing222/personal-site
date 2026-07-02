@@ -533,8 +533,8 @@ html.section-scroll-page body::-webkit-scrollbar {
 .section-dots {
   position: fixed;
   top: 50%;
-  right: 24px !important;
-  left: auto !important;
+  right: 24px;
+  left: auto;
   z-index: 30;
   display: grid;
   gap: 11px;
@@ -558,11 +558,6 @@ html.section-scroll-page body::-webkit-scrollbar {
   background: linear-gradient(180deg, rgba(100, 210, 255, 0.28), transparent 46%, rgba(244, 184, 74, 0.14));
   opacity: 0.46;
   pointer-events: none;
-}
-
-main .section-dots {
-  right: 24px !important;
-  left: auto !important;
 }
 
 .section-dots a {
@@ -1285,8 +1280,7 @@ pre.astro-code code {
   }
 
   .section-dots {
-    right: 10px !important;
-    left: auto !important;
+    right: 10px;
   }
 }
 
