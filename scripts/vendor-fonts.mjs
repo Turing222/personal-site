@@ -43,6 +43,10 @@ async function main() {
     await rm(TARGET_DIR, { recursive: true, force: true });
     await mkdir(path.dirname(TARGET_DIR), { recursive: true });
     await cp(path.join(workDir, SOURCE_SUBDIR), TARGET_DIR, { recursive: true });
+    // Drop cn-font-split build artifacts that shouldn't be published.
+    for (const extra of ['index.html', 'reporter.json', 'reporter.bin']) {
+      await rm(path.join(TARGET_DIR, extra), { force: true });
+    }
 
     const css = await readFile(path.join(TARGET_DIR, 'result.css'), 'utf8');
     const faceCount = (css.match(/@font-face/g) ?? []).length;
