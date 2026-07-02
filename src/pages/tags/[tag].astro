@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EntryCard from '../../components/EntryCard.astro';
-import { entryUrl, getEntryLang, isPublished, matchesTagSlug, tagToSlug } from '../../utils/content';
+import { entryUrl, getEntryLang, getTagTranslationUrl, isPublished, matchesTagSlug, tagToSlug } from '../../utils/content';
 
 export async function getStaticPaths() {
   const allEntries = [
@@ -18,15 +18,10 @@ export async function getStaticPaths() {
     }
   }
 
-  return [...tags.entries()].map(([slug, tag]) => {
-    const hasEnCounterpart = allEntries.some(
-      (entry) => getEntryLang(entry) === 'en' && entry.data.tags.some((item) => matchesTagSlug(item, slug)),
-    );
-    return {
-      params: { tag: slug },
-      props: { tag, alternateUrl: hasEnCounterpart ? `/en/tags/${slug}/` : null },
-    };
-  });
+  return [...tags.entries()].map(([slug, tag]) => ({
+    params: { tag: slug },
+    props: { tag, alternateUrl: getTagTranslationUrl(allEntries, 'zh', 'en', slug, `/en/tags/${slug}/`) },
+  }));
 }
 
 interface Props {

@@ -1,14 +1,15 @@
 // One-off generator for public/images/og-default.png (1200x630).
-// Uses sharp, which is already present as a transitive dependency of Astro
-// (image optimization). If Astro ever drops it, run instead with:
-//   npm exec --package=sharp -- node scripts/generate-og.mjs
-//
-// Usage: node scripts/generate-og.mjs
+// Usage: npm run generate:og
 
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const outputPath = path.join(projectRoot, 'public/images/og-default.png');
 
 const svg = `
 <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
@@ -43,5 +44,6 @@ const svg = `
 </svg>
 `;
 
-await sharp(Buffer.from(svg)).png().toFile('public/images/og-default.png');
-console.log('Wrote public/images/og-default.png');
+await mkdir(path.dirname(outputPath), { recursive: true });
+await sharp(Buffer.from(svg)).png().toFile(outputPath);
+console.log(`Wrote ${path.relative(projectRoot, outputPath)}`);

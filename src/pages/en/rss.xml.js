@@ -17,7 +17,7 @@ export async function GET(context) {
   return rss({
     title: 'Dewflow Lab',
     description: 'Personal project lab and technical review archive.',
-    site: context.site,
+    site: new URL('/en/', context.site),
     items: items.map(({ entry, collection }) => ({
       title: entry.data.title,
       description: entry.data.description,

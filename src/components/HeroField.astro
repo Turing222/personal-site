@@ -73,6 +73,13 @@
     }
   `;
 
+  const heroFieldTeardowns = new Set<() => void>();
+
+  function teardownHeroFields() {
+    heroFieldTeardowns.forEach((teardown) => teardown());
+    heroFieldTeardowns.clear();
+  }
+
   function setupHeroFields() {
     document.querySelectorAll('[data-hero-field]').forEach((root) => {
       if (!(root instanceof HTMLElement) || root.dataset.ready === 'true') {
@@ -123,6 +130,8 @@
       const POINTER_EASE = 0.14;
       const heroSection = root.closest('.hero-with-field');
       const pointerTarget = heroSection instanceof HTMLElement ? heroSection : root;
+      const controller = new AbortController();
+      const { signal } = controller;
 
       let animationFrame = 0;
       let isVisible = true;
@@ -261,27 +270,28 @@
       }
 
       function teardown() {
-        pointerTarget.removeEventListener('pointermove', onPointerMove);
-        pointerTarget.removeEventListener('pointerleave', resetPointer);
+        controller.abort();
         observer.disconnect();
         if (animationFrame !== 0) {
           cancelAnimationFrame(animationFrame);
           animationFrame = 0;
         }
+        heroFieldTeardowns.delete(teardown);
       }
 
-      pointerTarget.addEventListener('pointermove', onPointerMove, { passive: true });
-      pointerTarget.addEventListener('pointerleave', resetPointer, { passive: true });
+      pointerTarget.addEventListener('pointermove', onPointerMove, { passive: true, signal });
+      pointerTarget.addEventListener('pointerleave', resetPointer, { signal });
 
-      window.addEventListener('resize', resize, { passive: true });
+      window.addEventListener('resize', resize, { passive: true, signal });
       document.addEventListener('visibilitychange', () => {
         isVisible = document.visibilityState === 'visible';
         if (!isVisible) {
           resetPointer();
         }
         updateLoop();
-      });
+      }, { signal });
 
+      heroFieldTeardowns.add(teardown);
       resize();
       observer.observe(root);
       updateLoop();
@@ -322,6 +332,7 @@
     return shader;
   }
 
+  document.addEventListener('astro:before-swap', teardownHeroFields);
   document.addEventListener('astro:page-load', setupHeroFields);
   setupHeroFields();
 </script>

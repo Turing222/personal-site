@@ -32,7 +32,7 @@ const projects = defineCollection({
     status: z.enum(['idea', 'building', 'shipped', 'archived']).default('building'),
     stack: z.array(z.string()).default([]),
     lang: z.enum(['zh', 'en']).default('zh'),
-    translationKey: z.string(),
+    translationKey: z.string().min(1),
     links: z.array(linkSchema).default([]),
   }),
 });
@@ -53,7 +53,7 @@ const posts = defineCollection({
     sourceNote: z.string().optional(),
     changelog: z.array(changelogSchema).default([]),
     lang: z.enum(['zh', 'en']).default('zh'),
-    translationKey: z.string(),
+    translationKey: z.string().min(1),
   }),
 });
 
