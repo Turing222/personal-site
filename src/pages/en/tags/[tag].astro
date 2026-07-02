@@ -34,7 +34,7 @@ interface Props {
   alternateUrl: string | null;
 }
 
-const { tag, alternateUrl } = Astro.props;
+const { tag, alternateUrl } = Astro.props as Props;
 const slug = tagToSlug(tag);
 const posts = (await getCollection('posts')).filter((entry) => isPublished(entry) && getEntryLang(entry) === 'en' && entry.data.tags.some((item) => matchesTagSlug(item, slug)));
 const projects = (await getCollection('projects')).filter((entry) => isPublished(entry) && getEntryLang(entry) === 'en' && entry.data.tags.some((item) => matchesTagSlug(item, slug)));

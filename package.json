@@ -3,6 +3,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
     "new:post": "node scripts/new-entry.mjs --type post",
     "new:project": "node scripts/new-entry.mjs --type project"
   },
@@ -15,6 +16,7 @@
     "mermaid": "11.16.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "typescript": "6.0.3"
   }
 }

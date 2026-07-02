@@ -33,3 +33,5 @@ function setupHeaderState() {
 }
 
 document.addEventListener('astro:page-load', setupHeaderState);
+
+export {};

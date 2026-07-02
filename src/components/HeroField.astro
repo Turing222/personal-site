@@ -81,12 +81,15 @@
       root.dataset.ready = 'true';
 
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const glCanvas = root.querySelector('[data-hero-webgl]');
-      const particleCanvas = root.querySelector('[data-hero-particles]');
-      if (!(glCanvas instanceof HTMLCanvasElement) || !(particleCanvas instanceof HTMLCanvasElement) || reduceMotion) {
+      const glCanvasNode = root.querySelector('[data-hero-webgl]');
+      const particleCanvasNode = root.querySelector('[data-hero-particles]');
+      if (!(glCanvasNode instanceof HTMLCanvasElement) || !(particleCanvasNode instanceof HTMLCanvasElement) || reduceMotion) {
         root.classList.add('is-static');
         return;
       }
+      // Narrowed aliases: closures below don't retain the instanceof check above.
+      const glCanvas = glCanvasNode;
+      const particleCanvas = particleCanvasNode;
 
       const gl = glCanvas.getContext('webgl2', {
         alpha: true,
@@ -98,17 +101,21 @@
         root.classList.add('is-static');
         return;
       }
+      // Narrowed aliases: closures below don't retain the null check above.
+      const glCtx = gl;
+      const ctx = particleContext;
 
-      const program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+      const program = createProgram(glCtx, vertexShaderSource, fragmentShaderSource);
       if (!program) {
         root.classList.add('is-static');
         return;
       }
+      const shaderProgram = program;
 
       const uniforms = {
-        resolution: gl.getUniformLocation(program, 'u_resolution'),
-        pointer: gl.getUniformLocation(program, 'u_pointer'),
-        time: gl.getUniformLocation(program, 'u_time'),
+        resolution: glCtx.getUniformLocation(shaderProgram, 'u_resolution'),
+        pointer: glCtx.getUniformLocation(shaderProgram, 'u_pointer'),
+        time: glCtx.getUniformLocation(shaderProgram, 'u_time'),
       };
 
       const DEFAULT_POINTER_X = 0.42;
@@ -127,9 +134,9 @@
       let pointerY = DEFAULT_POINTER_Y;
       let targetPointerX = DEFAULT_POINTER_X;
       let targetPointerY = DEFAULT_POINTER_Y;
-      let nodes = [];
+      let nodes: Array<{ x: number; y: number; vx: number; vy: number; phase: number }> = [];
 
-      function setPointerFromEvent(event) {
+      function setPointerFromEvent(event: PointerEvent) {
         const rect = pointerTarget.getBoundingClientRect();
         targetPointerX = (event.clientX - rect.left) / Math.max(rect.width, 1);
         targetPointerY = (event.clientY - rect.top) / Math.max(rect.height, 1);
@@ -163,11 +170,11 @@
         glCanvas.style.height = `${rect.height}px`;
         particleCanvas.style.width = `${rect.width}px`;
         particleCanvas.style.height = `${rect.height}px`;
-        gl.viewport(0, 0, width, height);
+        glCtx.viewport(0, 0, width, height);
         nodes = createNodes(rect.width < 720 ? 34 : 74);
       }
 
-      function createNodes(count) {
+      function createNodes(count: number) {
         return Array.from({ length: count }, () => ({
           x: Math.random() * width,
           y: Math.random() * height,
@@ -177,8 +184,7 @@
         }));
       }
 
-      function drawParticles(time) {
-        const ctx = particleContext;
+      function drawParticles(time: number) {
         ctx.clearRect(0, 0, width, height);
         ctx.lineWidth = 1;
         const pullX = pointerX * width;
@@ -221,7 +227,7 @@
         });
       }
 
-      function frame(now) {
+      function frame(now: number) {
         if (!root.isConnected) {
           teardown();
           return;
@@ -229,11 +235,11 @@
 
         const time = (now - startedAt) / 1000;
         stepPointer();
-        gl.useProgram(program);
-        gl.uniform2f(uniforms.resolution, width, height);
-        gl.uniform2f(uniforms.pointer, pointerX, pointerY);
-        gl.uniform1f(uniforms.time, time);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        glCtx.useProgram(shaderProgram);
+        glCtx.uniform2f(uniforms.resolution, width, height);
+        glCtx.uniform2f(uniforms.pointer, pointerX, pointerY);
+        glCtx.uniform1f(uniforms.time, time);
+        glCtx.drawArrays(glCtx.TRIANGLES, 0, 3);
         drawParticles(now);
         animationFrame = requestAnimationFrame(frame);
       }
@@ -250,7 +256,7 @@
         }
       }
 
-      function onPointerMove(event) {
+      function onPointerMove(event: PointerEvent) {
         setPointerFromEvent(event);
       }
 
@@ -282,7 +288,7 @@
     });
   }
 
-  function createProgram(gl, vertexSource, fragmentSource) {
+  function createProgram(gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: string) {
     const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
     const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
     if (!vertexShader || !fragmentShader) {
@@ -303,7 +309,7 @@
     return program;
   }
 
-  function compileShader(gl, type, source) {
+  function compileShader(gl: WebGL2RenderingContext, type: number, source: string) {
     const shader = gl.createShader(type);
     if (!shader) {
       return undefined;

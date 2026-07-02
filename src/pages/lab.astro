@@ -128,9 +128,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const status = root.querySelector('[data-http-status]');
       const cache = root.querySelector('[data-http-cache]');
       const time = root.querySelector('[data-http-time]');
-      let pendingTimers = [];
+      let pendingTimers: number[] = [];
 
-      function setStep(currentIndex) {
+      function setStep(currentIndex: number) {
         steps.forEach((step, stepIndex) => {
           step.classList.toggle('active', stepIndex <= currentIndex);
         });

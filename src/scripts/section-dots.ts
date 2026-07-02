@@ -96,3 +96,5 @@ function setupSectionDots() {
 }
 
 document.addEventListener('astro:page-load', setupSectionDots);
+
+export {};

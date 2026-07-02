@@ -58,19 +58,30 @@ const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
     <p class="search-count" data-search-count>{initialText}</p>
     <div class="search-results" data-search-results></div>
   </section>
-  <script type="application/json" data-search-index set:html={indexJson}></script>
+  <script is:inline type="application/json" data-search-index set:html={indexJson}></script>
 
   <script>
     import Fuse from 'fuse.js';
 
-    function escapeHtml(value) {
-      return value.replace(/[&<>"']/g, (char) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;',
-      }[char]));
+    interface SearchItem {
+      title: string;
+      description: string;
+      url: string;
+      tags: string[];
+      type: 'Project' | 'Post';
+      date: string;
+    }
+
+    const HTML_ESCAPES: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+
+    function escapeHtml(value: string) {
+      return value.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
     }
 
     function setupSearch() {
@@ -84,8 +95,8 @@ const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
       }
       root.setAttribute('data-search-ready', 'true');
 
-      const items = JSON.parse(indexNode.textContent || '[]');
-      const input = root.querySelector('[data-search-input]');
+      const items: SearchItem[] = JSON.parse(indexNode.textContent || '[]');
+      const input = root.querySelector<HTMLInputElement>('[data-search-input]');
       const resultsNode = root.querySelector('[data-search-results]');
       const countNode = root.querySelector('[data-search-count]');
       const filterButtons = Array.from(root.querySelectorAll('[data-filter]'));
@@ -106,7 +117,7 @@ const indexJson = JSON.stringify(items).replace(/</g, '\\u003c');
         minMatchCharLength: 1,
       });
 
-      function render(results) {
+      function render(results: SearchItem[]) {
         if (!resultsNode || !countNode) return;
 
         if (results.length === 0) {
